@@ -3,6 +3,18 @@
 Append-only. One entry per decision that would otherwise be re-litigated.
 Format: date, decision, reason, alternatives rejected.
 
+## 2026-07-21: diff keys on resolved identity, not just name@version
+
+`introducedFacts` in `src/core/diff.ts` keys each dependency on
+`name@version#origin`, where `origin = integrity ?? resolvedUrl ?? source`. The
+resolved-origin suffix is load-bearing: a same-version lockfile repoint (the
+poisoning vector) keeps `name@version` but swaps `integrity`/`resolvedUrl`, so a
+plain `name@version` key would treat the repoint as unchanged and the diff would
+report nothing introduced. Keying on the resolved identity is what makes that
+repoint visible as an introduced fact; a future refactor must not drop the origin
+suffix. Rejected: keying on `name@version` alone (the M1.2 diff-mode review
+showed it is blind to a same-version repoint, a HIGH-severity gap).
+
 ## 2026-07-21: Name finalized to "vetguard" (supersedes "vetdep")
 
 Package/CLI name: `vetguard` (vet + guard; available on npm 2026-07-21;
