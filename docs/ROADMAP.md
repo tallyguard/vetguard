@@ -233,6 +233,21 @@ Goal: people can find vetguard, trust it at a glance, and contribute to it.
   conversation.
 - **5.5 Docs site decision.** Recommendation: defer; the README plus docs/
   is enough until the feature surface stabilizes. Revisit at v1.0.
+- **5.6 Pre-launch legal / trademark check (not legal advice; a to-do list).**
+  Before a real launch push, de-risk the few areas where a free OSS security
+  tool can draw a complaint: (1) trademark, search "vetguard" on USPTO TESS and
+  EUIPO, note the existing veterinary/pet "VetGuard" marks are a different
+  goods class but confirm no software-class conflict; do not use competitors'
+  marks or logos. (2) Findings framing, keep every finding an evidenced risk
+  signal for the person scanning ("resembles X, verify", "could not verify"),
+  never a public verdict that a named vendor's package "is malware"; that
+  opinion-plus-disclosed-facts framing is the main defamation guard. (3) The
+  community bad-names list (5.2) and the comparison doc (5.1) are the two public
+  surfaces that need neutral wording, a dispute/takedown path, and factual-only
+  claims. (4) Confirm the Apache-2.0 warranty/liability disclaimer stays intact.
+  (5) For a serious launch, a flat-fee "clear to launch" review with an IP/tech
+  lawyer. Copyright exposure is near-zero (original code; the npm-high-impact
+  corpus is MIT and attributed; name lists are facts).
 
 ## Milestone 6: v1.0
 

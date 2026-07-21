@@ -59,6 +59,31 @@ Exit codes: `0` clean or could-not-verify, `1` findings, `2` usage or read
 error. `check` makes vetguard usable as a pre-install gate, including for
 coding agents that add dependencies.
 
+## Configuration
+
+An optional `vetguard.config.json` in the scanned project sets defaults and
+suppresses findings. Command-line flags override it.
+
+```json
+{
+  "failOn": "high",
+  "offline": false,
+  "ignore": [
+    {
+      "rule": "young-package",
+      "package": "our-internal-lib",
+      "reason": "first-party package published last week; reviewed"
+    }
+  ]
+}
+```
+
+Every `ignore` entry requires a `reason`, an ignore without one is a
+configuration error, not a silent skip. A suppressed finding is still shown in
+the report (marked suppressed, with its reason) but does not affect the verdict
+or exit code. The point is an audit trail: you can always see what was waved
+through and why.
+
 ## Use on pull requests
 
 vetguard runs in GitHub Actions with no server and no cost: the scan happens on

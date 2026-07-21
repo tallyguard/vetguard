@@ -1,6 +1,6 @@
 import { runDetectors } from "./core/engine.js";
 import { builtinDetectors } from "./core/rules/index.js";
-import type { Detector, PackageFacts, Report } from "./core/model.js";
+import type { Detector, IgnoreRule, PackageFacts, Report } from "./core/model.js";
 import { introducedFacts } from "./core/diff.js";
 import { readManifestFacts } from "./ecosystems/npm/manifest.js";
 import { readLockfile, readLockfileFile, detectOtherLockfiles } from "./ecosystems/npm/lockfile.js";
@@ -15,6 +15,8 @@ export interface ScanOptions {
   client?: RegistryClient;
   downloads?: DownloadsClient;
   detectors?: Detector[];
+  /** Suppressions from config; matched findings are reported but do not affect the verdict. */
+  ignore?: readonly IgnoreRule[];
   /** Injected for a deterministic `generatedAt` and age in tests. */
   now?: () => Date;
 }
@@ -35,6 +37,16 @@ function enrichOptions(options: ScanOptions): EnrichOptions {
   return {
     downloads: downloadsFor(options),
     ...(options.now === undefined ? {} : { now: options.now }),
+  };
+}
+
+function reportContext(options: ScanOptions, target: string, unverified: string[]) {
+  return {
+    target,
+    ecosystem: "npm" as const,
+    unverified,
+    generatedAt: timestamp(options),
+    ...(options.ignore === undefined ? {} : { ignore: options.ignore }),
   };
 }
 
@@ -68,12 +80,11 @@ export async function scanProject(dir: string, options: ScanOptions = {}): Promi
     registryFor(options),
     enrichOptions(options),
   );
-  const report = runDetectors(facts, options.detectors ?? builtinDetectors, {
-    target: dir,
-    ecosystem: "npm",
-    unverified,
-    generatedAt: timestamp(options),
-  });
+  const report = runDetectors(
+    facts,
+    options.detectors ?? builtinDetectors,
+    reportContext(options, dir, unverified),
+  );
   return { ...report, basis, ...(warnings.length > 0 ? { warnings } : {}) };
 }
 
@@ -104,12 +115,11 @@ export async function diffScan(
     registryFor(options),
     enrichOptions(options),
   );
-  const report = runDetectors(facts, options.detectors ?? builtinDetectors, {
-    target: `${basePath}..${headPath}`,
-    ecosystem: "npm",
-    unverified,
-    generatedAt: timestamp(options),
-  });
+  const report = runDetectors(
+    facts,
+    options.detectors ?? builtinDetectors,
+    reportContext(options, `${basePath}..${headPath}`, unverified),
+  );
   return { ...report, basis: "lockfile" };
 }
 
@@ -133,10 +143,9 @@ export async function checkPackage(specInput: string, options: ScanOptions = {})
     registryFor(options),
     enrichOptions(options),
   );
-  return runDetectors(facts, options.detectors ?? builtinDetectors, {
-    target: specInput,
-    ecosystem: "npm",
-    unverified,
-    generatedAt: timestamp(options),
-  });
+  return runDetectors(
+    facts,
+    options.detectors ?? builtinDetectors,
+    reportContext(options, specInput, unverified),
+  );
 }

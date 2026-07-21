@@ -38,6 +38,11 @@ export function renderTerminal(report: Report): string {
     lines.push(`Could not verify: ${report.unverified.join(", ")}`);
   }
 
+  for (const f of report.suppressed ?? []) {
+    const version = f.packageVersion ? `@${f.packageVersion}` : "";
+    lines.push(`[SUPPRESSED] ${f.packageName}${version} (${f.ruleId}): ${f.suppressedReason}`);
+  }
+
   lines.push(`Verdict: ${report.verdict}`);
   return lines.join("\n");
 }

@@ -42,6 +42,33 @@ describe("scanProject", () => {
     await rm(dir, { recursive: true, force: true });
   });
 
+  it("suppresses a configured finding without changing the clean verdict", async () => {
+    const dir = await makeProject({
+      "package.json": { name: "app", dependencies: { "ghost-pkg": "^1.0.0" } },
+      "package-lock.json": {
+        lockfileVersion: 3,
+        packages: {
+          "": { name: "app" },
+          "node_modules/ghost-pkg": {
+            version: "1.0.0",
+            resolved: "https://registry.npmjs.org/ghost-pkg",
+          },
+        },
+      },
+    });
+    const report = await scanProject(dir, {
+      client: notFoundRegistry,
+      downloads: noDownloads,
+      ignore: [
+        { rule: "nonexistent-package", package: "ghost-pkg", reason: "known internal name" },
+      ],
+    });
+    expect(report.findings).toHaveLength(0);
+    expect(report.verdict).toBe("clean");
+    expect(report.suppressed?.[0]?.suppressedReason).toBe("known internal name");
+    await rm(dir, { recursive: true, force: true });
+  });
+
   it("falls back to the manifest when there is no lockfile", async () => {
     const dir = await makeProject({
       "package.json": { name: "app", dependencies: { "ghost-pkg": "^1.0.0" } },
