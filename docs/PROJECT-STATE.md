@@ -70,7 +70,9 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   M1.4 done: `vetguard baseline` records current findings to
   `.vetguard-baseline.json`; later scans report those as baselined (suppressed)
   and fail only on new findings; verified live end to end.
-  Next in M1: terminal polish, Action PR comment.
+  M1.5 done: terminal polish, ANSI colors by severity (TTY-gated, NO_COLOR /
+  --no-color respected) and `--quiet` (findings + verdict only).
+  Next in M1: Action PR comment.
 
 ## Stack
 

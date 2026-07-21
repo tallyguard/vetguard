@@ -78,7 +78,7 @@ minutes, on a real repo, without reading docs.
   single biggest unlock for existing repos: adopt today, ratchet later. Done
   when a repo with pre-existing findings passes CI after baselining and a
   newly introduced finding still fails.
-- **1.5 Terminal polish.** ANSI colors by severity (hand-rolled, zero deps),
+- **1.5 Terminal polish (DONE).** ANSI colors by severity (hand-rolled, zero deps),
   TTY detection, `NO_COLOR` and `--no-color` respected, aligned columns,
   `--quiet` (findings and verdict only). Done when output is readable in a
   dark terminal, a light terminal, and a CI log.

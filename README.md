@@ -47,9 +47,15 @@ vetguard --version      Show version
   --json                Print the report as JSON (for CI and tooling)
   --sarif               Print SARIF 2.1.0 for GitHub code scanning
   --markdown            Print compact markdown for a PR comment or summary
+  --quiet               Print only findings and the verdict
+  --no-color            Disable ANSI colors (also respects NO_COLOR)
   --fail-on <severity>  Exit non-zero only at or above this severity
                         (critical|high|medium|low|info); default: any finding
 ```
+
+Text output is colored by severity only when writing to a terminal; piped or
+redirected output stays plain, and `--no-color` or the `NO_COLOR` environment
+variable turns color off.
 
 `scan` reads the resolved dependency tree from `package-lock.json` (v2 or v3),
 so it covers transitive dependencies and exact installed versions. Without a

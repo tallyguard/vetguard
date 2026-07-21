@@ -34,6 +34,8 @@ Options:
   --json                     Print the report as JSON.
   --sarif                    Print SARIF 2.1.0 for GitHub code scanning.
   --markdown                 Print compact markdown for a PR comment or summary.
+  --quiet                    Print only findings and the verdict.
+  --no-color                 Disable ANSI colors (also respects NO_COLOR).
   --fail-on <severity>       Exit non-zero only when a finding at or above this
                              severity exists (critical|high|medium|low|info).
                              Default: any finding exits non-zero.
@@ -48,6 +50,8 @@ interface RunOptions {
   json: boolean;
   sarif: boolean;
   markdown: boolean;
+  quiet: boolean;
+  color: boolean;
   failOn: Severity | undefined;
 }
 
@@ -62,6 +66,8 @@ async function main(argv: string[]): Promise<number> {
       json: { type: "boolean" },
       sarif: { type: "boolean" },
       markdown: { type: "boolean" },
+      quiet: { type: "boolean" },
+      "no-color": { type: "boolean" },
       "fail-on": { type: "string" },
       base: { type: "string" },
       head: { type: "string" },
@@ -85,11 +91,21 @@ async function main(argv: string[]): Promise<number> {
     return 2;
   }
 
+  const color =
+    process.stdout.isTTY === true &&
+    !process.env.NO_COLOR &&
+    values["no-color"] !== true &&
+    values.json !== true &&
+    values.sarif !== true &&
+    values.markdown !== true;
+
   const options: RunOptions = {
     offline: values.offline === true,
     json: values.json === true,
     sarif: values.sarif === true,
     markdown: values.markdown === true,
+    quiet: values.quiet === true,
+    color,
     failOn: failOnRaw as Severity | undefined,
   };
 
@@ -207,7 +223,7 @@ function render(report: Report, options: RunOptions): string {
   if (options.sarif) return renderSarif(report, VERSION);
   if (options.markdown) return renderMarkdown(report);
   if (options.json) return renderJson(report, VERSION);
-  return renderTerminal(report);
+  return renderTerminal(report, { color: options.color, quiet: options.quiet });
 }
 
 main(process.argv.slice(2))
