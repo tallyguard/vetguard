@@ -1,8 +1,9 @@
 import { runDetectors } from "./core/engine.js";
 import { builtinDetectors } from "./core/rules/index.js";
 import type { Detector, PackageFacts, Report } from "./core/model.js";
+import { introducedFacts } from "./core/diff.js";
 import { readManifestFacts } from "./ecosystems/npm/manifest.js";
-import { readLockfile, detectOtherLockfiles } from "./ecosystems/npm/lockfile.js";
+import { readLockfile, readLockfileFile, detectOtherLockfiles } from "./ecosystems/npm/lockfile.js";
 import { enrichWithRegistry, type EnrichOptions } from "./ecosystems/npm/enrich.js";
 import { createRegistryClient, type RegistryClient } from "./ecosystems/npm/registry.js";
 import { createDownloadsClient, type DownloadsClient } from "./ecosystems/npm/downloads.js";
@@ -74,6 +75,48 @@ export async function scanProject(dir: string, options: ScanOptions = {}): Promi
     generatedAt: timestamp(options),
   });
   return { ...report, basis, ...(warnings.length > 0 ? { warnings } : {}) };
+}
+
+/**
+ * Scans only the dependencies a change introduces: those present in the head
+ * lockfile but not the base (a new name, a new version, or a downgrade). Both
+ * must be package-lock v2/v3; an absent or unsupported lockfile on either side
+ * throws, because a partial diff would silently under-report. This is the
+ * highest-signal moment, a dependency entering a pull request.
+ */
+export async function diffScan(
+  basePath: string,
+  headPath: string,
+  options: ScanOptions = {},
+): Promise<Report> {
+  const base = await readLockfileFile(basePath);
+  if (base.status !== "ok") {
+    throw new Error(`base lockfile ${basePath}: ${lockfileProblem(base)}`);
+  }
+  const head = await readLockfileFile(headPath);
+  if (head.status !== "ok") {
+    throw new Error(`head lockfile ${headPath}: ${lockfileProblem(head)}`);
+  }
+
+  const introduced = introducedFacts(base.facts, head.facts);
+  const { facts, unverified } = await enrichWithRegistry(
+    introduced,
+    registryFor(options),
+    enrichOptions(options),
+  );
+  const report = runDetectors(facts, options.detectors ?? builtinDetectors, {
+    target: `${basePath}..${headPath}`,
+    ecosystem: "npm",
+    unverified,
+    generatedAt: timestamp(options),
+  });
+  return { ...report, basis: "lockfile" };
+}
+
+function lockfileProblem(
+  outcome: { status: "unsupported"; reason: string } | { status: "absent" },
+): string {
+  return outcome.status === "unsupported" ? outcome.reason : "file not found";
 }
 
 /** Vets a single package spec (`name`, `name@version`, `@scope/name@version`). */

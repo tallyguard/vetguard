@@ -66,6 +66,17 @@ describe("enrichWithRegistry", () => {
     expect(facts[0]?.existsOnRegistry).toBeUndefined();
   });
 
+  it("marks an off-registry (unknown) source as unverified, not implicitly clean", async () => {
+    const client = clientReturning({});
+    const { facts, unverified } = await enrichWithRegistry(
+      [fact({ name: "offreg", source: "unknown" }), fact({ name: "wsdep", source: "workspace" })],
+      client,
+    );
+    expect(unverified).toContain("offreg");
+    expect(unverified).not.toContain("wsdep");
+    expect(facts[0]?.existsOnRegistry).toBeUndefined();
+  });
+
   it("preserves input order under concurrency", async () => {
     const names = Array.from({ length: 25 }, (_, i) => `p${i}`);
     const client: RegistryClient = {

@@ -35,12 +35,16 @@ Or add it to a project with `npm install --save-dev vetguard`. Requires Node.js
 vetguard scan [dir]     Scan a project's dependencies (defaults to cwd)
 vetguard check <pkg>    Vet a single package before installing
                         (e.g. vetguard check some-package, foo@1.2.3)
+vetguard diff --base <lockfile> [--head <lockfile>]
+                        Scan only the dependencies a change introduces
+                        (head defaults to ./package-lock.json)
 vetguard --help         Show help
 vetguard --version      Show version
 
   --offline             Do not contact the registry
   --json                Print the report as JSON (for CI and tooling)
   --sarif               Print SARIF 2.1.0 for GitHub code scanning
+  --markdown            Print compact markdown for a PR comment or summary
   --fail-on <severity>  Exit non-zero only at or above this severity
                         (critical|high|medium|low|info); default: any finding
 ```
@@ -88,6 +92,30 @@ jobs:
 > 0.x minor versions may change behaviour; a moving `@v1` tag will follow the
 > 1.0 release. This repository also scans its own pull requests from source via
 > [.github/workflows/pr-scan.yml](.github/workflows/pr-scan.yml).
+
+### Scan only what a pull request changes
+
+`diff` mode evaluates just the dependencies a change introduces (new to the head
+lockfile, or a new version), which is the highest-signal moment and keeps the
+report focused. Fetch the base branch's lockfile and diff against the working
+tree:
+
+```yaml
+name: Dependency diff
+on:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  vetguard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # so the base branch's lockfile is available
+      - run: git show "origin/${{ github.base_ref }}:package-lock.json" > /tmp/base-lock.json
+      - run: npx vetguard@0.1.0 diff --base /tmp/base-lock.json --fail-on high
+```
 
 ## What it checks
 

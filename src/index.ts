@@ -16,10 +16,13 @@ export { builtinDetectors } from "./core/rules/index.js";
 export { renderTerminal } from "./output/terminal.js";
 export { renderJson, JSON_SCHEMA_VERSION } from "./output/json.js";
 export { renderSarif } from "./output/sarif.js";
+export { renderMarkdown, MARKDOWN_COMMENT_MARKER } from "./output/markdown.js";
 export { resolveExitCode } from "./output/exit-code.js";
+export { introducedFacts } from "./core/diff.js";
 export { readManifestFacts, classifySource } from "./ecosystems/npm/manifest.js";
 export {
   readLockfile,
+  readLockfileFile,
   detectOtherLockfiles,
   nameFromLockPath,
   type LockfileOutcome,
@@ -43,7 +46,7 @@ export {
   type EnrichOptions,
 } from "./ecosystems/npm/enrich.js";
 export { parsePackageSpec, type PackageSpec } from "./ecosystems/npm/spec.js";
-export { scanProject, checkPackage, type ScanOptions } from "./scan.js";
+export { scanProject, checkPackage, diffScan, type ScanOptions } from "./scan.js";
 
 import { readFileSync } from "node:fs";
 

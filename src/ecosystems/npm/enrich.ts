@@ -41,7 +41,13 @@ export async function enrichWithRegistry(
   const unverified: string[] = [];
 
   const facts = await mapWithConcurrency(input, concurrency, async (fact) => {
-    if (fact.source !== "registry") return fact;
+    if (fact.source !== "registry") {
+      // git/file/link/workspace/alias are recognised, deliberately-unjudged
+      // patterns. An "unknown" source is an off-registry URL we cannot check
+      // against npm, so report it as unverified rather than implicitly clean.
+      if (fact.source === "unknown") unverified.push(fact.name);
+      return fact;
+    }
 
     const [lookup, weeklyDownloads] = await Promise.all([
       client.getPackument(fact.name, fact.version),
