@@ -172,12 +172,20 @@ Operational:
   npm manifest reader, the `nonexistent-package` detector, terminal output,
   and the CLI (`scan`/`--help`/`--version`) wired end to end. Gate green
   locally; CLAUDE.md sections 3-4-7 filled in.
-- **Phase 1 - core + first verdicts**: engine, npm manifest/lockfile (v2/v3)
-  collectors, registry client with cache, `scan` and `check`, detectors:
-  nonexistent-package, young-package, typosquat, hallucination-name,
-  install-scripts, unpublished-version. Terminal + JSON output. Done when
-  `npx <tool> check react-codeshift`-class names flag correctly and top-100
-  popular packages scan clean.
+- **Phase 1 - core + first verdicts** (IN PROGRESS): engine, npm
+  manifest/lockfile (v2/v3) collectors, registry client with cache, `scan`
+  and `check`, detectors: nonexistent-package, young-package, typosquat,
+  hallucination-name, install-scripts, unpublished-version. Terminal + JSON
+  output. Done when hallucinated/nonexistent names flag correctly and the
+  top-100 popular packages scan clean.
+  - Done: registry client (injectable fetch, in-run memoization, offline,
+    honest degradation), enrichment collector, `check` command,
+    nonexistent-package firing on live lookups.
+  - Follow-ups queued: npm downloads API + young-package; typosquat and
+    hallucination-name (needs the bundled popular-package corpus);
+    install-scripts and unpublished-version (facts already collected);
+    lockfile v2/v3 resolution; cross-run disk cache (currently in-run memo
+    only); JSON output.
 - **Phase 2 - deep analysis**: tarball/node_modules inspection, capability
   and obfuscation signals, agent-injection detector, OSV known-cve,
   lockfile-integrity, manifest-confusion. Hostile-input tests land here.

@@ -15,15 +15,22 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
 
 ## Status
 
-- 2026-07-21: **Phase 0 complete.** Named `vetguard`, Apache-2.0, repo will
-  be public. Toolchain,
-  core model + engine, npm manifest reader, first detector
-  (`nonexistent-package`), terminal output, and CLI (`scan`, `--help`,
-  `--version`) are wired end to end. Full gate green locally (typecheck,
-  lint, format:check, 6 tests, build, dogfood scan). CI workflow added.
-  Next: Phase 1 (registry client with cache, lockfile v2/v3 resolution,
-  `check` command, detectors: young-package, typosquat, hallucination-name,
-  install-scripts, unpublished-version).
+- 2026-07-21: **Phase 0 complete.** Named `vetguard`, Apache-2.0, public repo
+  (github.com/Poolchaos/vetguard, `main` protected). Toolchain, core model +
+  engine, npm manifest reader, `nonexistent-package` detector, terminal
+  output, CLI, CI, and open-source governance shipped and pushed.
+- 2026-07-21: **Phase 1 in progress.** Registry client (injectable fetch,
+  in-run memoization, offline-safe, honest degradation), registry enrichment
+  collector, and the `check <pkg>` command landed. `nonexistent-package` now
+  fires on real lookups. Verified live: `check express` clean; a nonexistent
+  name flags HIGH (exit 1); `--offline` reports could-not-verify. Note:
+  `react-codeshift` (the documented hallucinated name) now EXISTS on the
+  registry, so nonexistent-package does not catch it. That is expected and is
+  the reason the post-registration detectors below are the next priority.
+  Next: npm downloads API + `young-package`, then `typosquat` /
+  `hallucination-name` (name-similarity vs a popular corpus),
+  `install-scripts`, `unpublished-version`; lockfile v2/v3 resolution;
+  cross-run disk cache; JSON output.
 
 ## Stack
 
@@ -45,7 +52,10 @@ or `node dist/cli.js scan [dir]` after build.
 - `src/core/` - `model.ts` (types), `engine.ts` (runDetectors + verdict),
   `rules/` (pure detectors + registry index).
 - `src/ecosystems/npm/` - `manifest.ts` (package.json reader, source
-  classification). Lockfile/registry/tarball collectors land in Phase 1-2.
+  classification), `registry.ts` (registry client), `enrich.ts` (folds
+  registry facts into PackageFacts), `spec.ts` (`check` argument parser).
+  Lockfile/tarball collectors land next.
+- `src/util/` - `concurrency.ts` (bounded parallel map, dependency-free).
 - `src/output/` - `terminal.ts`. json/sarif/markdown come later.
 - `src/cli.ts` - CLI entry (shebang preserved by esbuild). `src/index.ts` -
   public library API.

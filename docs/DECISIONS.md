@@ -17,6 +17,20 @@ Repo will be created public (see next entry). The repo directory name
 ("npm-package-vulenrability-detector", a typo) is unrelated to the package
 name and left as-is.
 
+## 2026-07-21: Git workflow and branch protection
+
+Trunk-based with short-lived branches and PRs. `main` is always green and
+releasable; the only direct commit to `main` was the initial import.
+Every change lands on a `type/slug` branch (`feat/`, `fix/`, `docs/`,
+`chore/`, `refactor/`, `test/`) and merges via PR using **squash merge**
+(one commit per feature on `main`). Commit messages: imperative, one or two
+lines, no emojis, no authorship trailers. `main` branch protection requires
+both CI checks (`gate (20)`, `gate (22)`) green and a PR (0 approvals, so the
+solo maintainer can self-merge), enforces linear history, and blocks
+force-push and deletion; `enforce_admins=false` so the owner is never locked
+out. Rejected: committing to `main` directly (loses the CI gate and review
+point); requiring approvals (would block a solo maintainer).
+
 ## 2026-07-21: Repo will be public
 
 The GitHub repo is public from creation. Reasons: it is an open-source gift;
