@@ -66,13 +66,12 @@ function kindFromEntry(entry: LockEntry): DependencyKind {
 }
 
 /**
- * Reads resolved dependency facts from a package-lock.json (v2 or v3). Returns
- * `absent` when there is no lockfile and `unsupported` for a shape we do not
- * parse (v1, or a missing `packages` map), so the caller can fall back to the
- * manifest and say so rather than silently skipping.
+ * Reads resolved dependency facts from a specific package-lock.json file (v2 or
+ * v3). Returns `absent` when the file is missing and `unsupported` for a shape
+ * we do not parse (v1, or a missing `packages` map), so the caller can fall
+ * back or report rather than silently skipping.
  */
-export async function readLockfile(dir: string): Promise<LockfileOutcome> {
-  const lockPath = path.join(dir, "package-lock.json");
+export async function readLockfileFile(lockPath: string): Promise<LockfileOutcome> {
   let text: string;
   try {
     text = await readFile(lockPath, "utf8");
@@ -86,7 +85,7 @@ export async function readLockfile(dir: string): Promise<LockfileOutcome> {
   } catch (err) {
     return {
       status: "unsupported",
-      reason: `package-lock.json is not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
+      reason: `${lockPath} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
 
@@ -121,4 +120,9 @@ export async function readLockfile(dir: string): Promise<LockfileOutcome> {
   }
 
   return { status: "ok", facts, lockfileVersion: version };
+}
+
+/** Reads the `package-lock.json` in a project directory. */
+export async function readLockfile(dir: string): Promise<LockfileOutcome> {
+  return readLockfileFile(path.join(dir, "package-lock.json"));
 }

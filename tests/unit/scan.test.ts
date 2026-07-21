@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { mkdtemp, writeFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
-import { scanProject } from "../../src/scan.js";
+import { scanProject, diffScan } from "../../src/scan.js";
 import type { RegistryClient } from "../../src/ecosystems/npm/registry.js";
 import type { DownloadsClient } from "../../src/ecosystems/npm/downloads.js";
 
@@ -60,6 +60,64 @@ describe("scanProject", () => {
     const report = await scanProject(dir, { client: notFoundRegistry, downloads: noDownloads });
     expect(report.basis).toBe("manifest");
     expect(report.warnings?.some((w) => w.includes("not supported"))).toBe(true);
+    await rm(dir, { recursive: true, force: true });
+  });
+});
+
+function lock(packages: Record<string, { version: string; resolved?: string }>): unknown {
+  return {
+    lockfileVersion: 3,
+    packages: {
+      "": { name: "app" },
+      ...Object.fromEntries(
+        Object.entries(packages).map(([name, entry]) => [
+          `node_modules/${name}`,
+          { resolved: `https://registry.npmjs.org/${name}`, ...entry },
+        ]),
+      ),
+    },
+  };
+}
+
+describe("diffScan", () => {
+  it("scans only the dependency a change introduces", async () => {
+    const dir = await makeProject({
+      "base.json": lock({ safe: { version: "1.0.0" } }),
+      "head.json": lock({ safe: { version: "1.0.0" }, "ghost-pkg": { version: "1.0.0" } }),
+    });
+    const report = await diffScan(path.join(dir, "base.json"), path.join(dir, "head.json"), {
+      client: notFoundRegistry,
+      downloads: noDownloads,
+    });
+    // Only ghost-pkg is new; the unchanged "safe" is not scanned.
+    expect(report.packagesScanned).toBe(1);
+    expect(report.findings.every((f) => f.packageName === "ghost-pkg")).toBe(true);
+    expect(report.findings.some((f) => f.ruleId === "nonexistent-package")).toBe(true);
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("throws a clear error when the base lockfile is missing", async () => {
+    const dir = await makeProject({ "head.json": lock({ a: { version: "1.0.0" } }) });
+    await expect(
+      diffScan(path.join(dir, "nope.json"), path.join(dir, "head.json"), {
+        client: notFoundRegistry,
+        downloads: noDownloads,
+      }),
+    ).rejects.toThrow(/base lockfile/);
+    await rm(dir, { recursive: true, force: true });
+  });
+
+  it("throws when the base lockfile is an unsupported version", async () => {
+    const dir = await makeProject({
+      "base.json": { lockfileVersion: 1, dependencies: {} },
+      "head.json": lock({ a: { version: "1.0.0" } }),
+    });
+    await expect(
+      diffScan(path.join(dir, "base.json"), path.join(dir, "head.json"), {
+        client: notFoundRegistry,
+        downloads: noDownloads,
+      }),
+    ).rejects.toThrow(/not supported/);
     await rm(dir, { recursive: true, force: true });
   });
 });
