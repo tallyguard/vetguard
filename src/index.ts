@@ -25,5 +25,6 @@ export {
 } from "./ecosystems/npm/registry.js";
 export { enrichWithRegistry, type EnrichmentResult } from "./ecosystems/npm/enrich.js";
 export { parsePackageSpec, type PackageSpec } from "./ecosystems/npm/spec.js";
+export { scanProject, checkPackage, type ScanOptions } from "./scan.js";
 
 export const VERSION = "0.0.0";

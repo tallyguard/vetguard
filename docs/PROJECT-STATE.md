@@ -55,8 +55,12 @@ or `node dist/cli.js scan [dir]` after build.
   classification), `registry.ts` (registry client), `enrich.ts` (folds
   registry facts into PackageFacts), `spec.ts` (`check` argument parser).
   Lockfile/tarball collectors land next.
+- `src/scan.ts` - `scanProject` / `checkPackage` orchestration (used by the
+  CLI and tests; keeps the CLI thin).
 - `src/util/` - `concurrency.ts` (bounded parallel map, dependency-free).
 - `src/output/` - `terminal.ts`. json/sarif/markdown come later.
+- `tests/dogfood/self-scan.test.ts` - vetguard scans its own repo offline on
+  every test run (see CLAUDE.md section 7).
 - `src/cli.ts` - CLI entry (shebang preserved by esbuild). `src/index.ts` -
   public library API.
 - `tests/unit/` - Vitest unit tests (6 passing).

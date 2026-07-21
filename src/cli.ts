@@ -1,13 +1,8 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
 import process from "node:process";
-import { runDetectors } from "./core/engine.js";
-import { builtinDetectors } from "./core/rules/index.js";
-import type { PackageFacts, Report } from "./core/model.js";
-import { readManifestFacts } from "./ecosystems/npm/manifest.js";
-import { enrichWithRegistry } from "./ecosystems/npm/enrich.js";
-import { createRegistryClient } from "./ecosystems/npm/registry.js";
-import { parsePackageSpec } from "./ecosystems/npm/spec.js";
+import type { Report } from "./core/model.js";
+import { scanProject, checkPackage } from "./scan.js";
 import { renderTerminal } from "./output/terminal.js";
 import { VERSION } from "./index.js";
 
@@ -70,47 +65,19 @@ async function main(argv: string[]): Promise<number> {
 }
 
 async function runScan(dir: string, offline: boolean): Promise<number> {
-  let manifestFacts: PackageFacts[];
+  let report: Report;
   try {
-    manifestFacts = await readManifestFacts(dir);
+    report = await scanProject(dir, { offline });
   } catch (err) {
     console.error(err instanceof Error ? err.message : String(err));
     return 2;
   }
-
-  const client = createRegistryClient({ offline });
-  const { facts, unverified } = await enrichWithRegistry(manifestFacts, client);
-
-  const report = runDetectors(facts, builtinDetectors, {
-    target: dir,
-    ecosystem: "npm",
-    unverified,
-    generatedAt: new Date().toISOString(),
-  });
-
   console.log(renderTerminal(report));
   return exitCodeFor(report);
 }
 
 async function runCheck(specInput: string, offline: boolean): Promise<number> {
-  const spec = parsePackageSpec(specInput);
-  const base: PackageFacts = {
-    name: spec.name,
-    ...(spec.version === undefined ? {} : { version: spec.version }),
-    kind: "prod",
-    source: "registry",
-  };
-
-  const client = createRegistryClient({ offline });
-  const { facts, unverified } = await enrichWithRegistry([base], client);
-
-  const report = runDetectors(facts, builtinDetectors, {
-    target: specInput,
-    ecosystem: "npm",
-    unverified,
-    generatedAt: new Date().toISOString(),
-  });
-
+  const report = await checkPackage(specInput, { offline });
   console.log(renderTerminal(report));
   return exitCodeFor(report);
 }

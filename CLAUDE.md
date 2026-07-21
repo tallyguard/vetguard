@@ -226,11 +226,18 @@ gating rules in section 1.
 
 ## 7. Testing
 
-Vitest. Tests live in `tests/**/*.test.ts` (unit tests under `tests/unit/`);
-fixtures go under `tests/fixtures/` and are excluded from typecheck, lint, and
-prettier. The default `npm test` run must not hit the live network; collectors
-are tested against recorded/mocked responses, and any live-API smoke test is a
-separate, manually-run job.
+Vitest. Tests live in `tests/**/*.test.ts` (unit tests under `tests/unit/`,
+the dogfood self-scan under `tests/dogfood/`); fixtures go under
+`tests/fixtures/` and are excluded from typecheck, lint, and prettier. The
+default `npm test` run must not hit the live network; collectors are tested
+against recorded/mocked responses, and any live-API smoke test is a separate,
+manually-run job.
+
+- **Dogfood.** `tests/dogfood/self-scan.test.ts` runs vetguard against its own
+  repo (offline, network-free) on every test run and asserts it does not crash
+  on the real manifest and flags nothing in its own dependencies. CI also runs
+  a live self-scan (`node dist/cli.js scan .`). Keep both green; a self-scan
+  finding is a real signal, either fix the dependency or fix the detector.
 
 - Add or adjust tests for any behaviour change, especially detection logic:
   a detector change without a test proving the new verdict is incomplete.
