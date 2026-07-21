@@ -14,7 +14,8 @@ from github.com/tallyguard/vetguard. Six detectors (nonexistent-package,
 young-package, install-scripts, unpublished-version, typosquat,
 hallucination-name), full-tree package-lock v2/v3 scanning with honest
 manifest fallback, text/JSON/SARIF output, `--fail-on`, a composite GitHub
-Action, a self-dogfooding PR scan, 103 tests, protected green main.
+Action, a self-dogfooding PR scan, 103 tests at first publish, protected green
+main.
 
 ## Operating instructions for the executing session
 
@@ -49,24 +50,24 @@ Success signals (no telemetry, public numbers only): npm weekly downloads,
 GitHub stars, Action adoption visible in public repos, external issues and
 PRs, packages reported to the community slopsquat list.
 
-## Milestone 1: Frictionless adoption
+## Milestone 1: Frictionless adoption (COMPLETE)
 
 Goal: someone who has never heard of vetguard gets value in under five
 minutes, on a real repo, without reading docs.
 
-- **1.1 Action tag hygiene.** Fix the README example (`@v1` tag does not
+- **1.1 Action tag hygiene (DONE).** Fix the README example (`@v1` tag does not
   exist). Adopt the standard convention: keep a moving `v1` major tag once
   v1.0 ships; until then document pinning `@v0.1.0`. Update RELEASING.md with
   the tag policy and trim its completed one-time bootstrap sections to a
   short "already done" note. Done when README and RELEASING match reality.
-- **1.2 `diff` mode.** `vetguard diff --base <lockfile> [--head <lockfile>]`
+- **1.2 `diff` mode (DONE).** `vetguard diff --base <lockfile> [--head <lockfile>]`
   (head defaults to ./package-lock.json): evaluate only dependencies added or
   version-changed between base and head. This is the highest-signal moment, a
   new dependency entering a PR. Output: terminal, JSON, SARIF, plus a compact
   markdown section for PR comments. Exit codes honor `--fail-on`. Done when a
   crafted base/head pair flags only the introduced package and the Action can
   run it on a PR (fetch base lockfile via `git show`; document fetch-depth).
-- **1.3 Config file with mandatory reasons.** `vetguard.config.json`
+- **1.3 Config file with mandatory reasons (DONE).** `vetguard.config.json`
   (documented schema): default `failOn`, `offline`, and
   `ignore: [{rule, package, reason}]` where reason is required and rendered
   in the report as "suppressed (reason)". CLI flags override config. Done
