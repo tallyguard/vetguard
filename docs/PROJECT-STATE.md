@@ -10,7 +10,7 @@ Last verified: 2026-07-21
 A free, open-source, local-first scanner for AI-era npm supply-chain
 threats: hallucinated (slopsquatted) dependencies, typosquats, malicious
 young packages, prompt injection aimed at coding agents, plus known-CVE
-lookup. CLI (`scan` / `check` / `diff`) + GitHub Action. Ecosystem-agnostic
+lookup. CLI (`scan` / `check` / `diff` / `baseline`) + GitHub Action. Ecosystem-agnostic
 core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
 
 ## Status
@@ -106,17 +106,18 @@ or `node dist/cli.js scan [dir]` after build.
   classification), `registry.ts` (registry client), `downloads.ts` (downloads
   API client), `enrich.ts` (folds registry + downloads facts into
   PackageFacts, computes ageDays), `spec.ts` (`check` argument parser),
-  `popular.ts` (corpus indexes + near-miss lookup), `data/popular-packages.ts`
-  (generated npm-high-impact snapshot). Lockfile/tarball collectors land next.
+  `popular.ts` (corpus indexes + near-miss lookup), `lockfile.ts` (package-lock
+  v2/v3 resolver), `data/popular-packages.ts` (generated npm-high-impact
+  snapshot). Tarball collector lands next.
 - `src/scan.ts` - `scanProject` / `checkPackage` / `diffScan` orchestration
   (used by the CLI and tests; keeps the CLI thin).
 - `src/util/` - `concurrency.ts` (bounded parallel map), `names.ts` (pure
   name-distance helpers).
 - `scripts/refresh-popular.mjs` - dev-only corpus regenerator (`npm run
 refresh:popular`).
-- `src/output/` - `terminal.ts`, `json.ts`, `sarif.ts` (GitHub code
-  scanning), `markdown.ts` (PR comment / job summary), `exit-code.ts`
-  (`--fail-on` gating).
+- `src/output/` - `terminal.ts`, `color.ts` (ANSI severity colors), `json.ts`,
+  `sarif.ts` (GitHub code scanning), `markdown.ts` (PR comment / job summary),
+  `exit-code.ts` (`--fail-on` gating).
 - `tests/dogfood/self-scan.test.ts` - vetguard scans its own repo offline on
   every test run (see CLAUDE.md section 7).
 - `src/cli.ts` - CLI entry (shebang preserved by esbuild). `src/index.ts` -
