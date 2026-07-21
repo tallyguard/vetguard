@@ -135,6 +135,10 @@ findings", never "safe".
   large dependency tree of its own.
 - **No telemetry.** The only network calls are the registry lookups a scan
   needs, and `--offline` disables even those.
+- **Dogfooded.** vetguard scans its own dependencies on every test run
+  (offline) and on every pull request
+  ([.github/workflows/pr-scan.yml](.github/workflows/pr-scan.yml)); a finding in
+  its own supply chain fails its own build.
 
 ## Development
 
