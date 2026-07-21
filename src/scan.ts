@@ -1,6 +1,6 @@
 import { runDetectors } from "./core/engine.js";
 import { builtinDetectors } from "./core/rules/index.js";
-import type { Detector, IgnoreRule, PackageFacts, Report } from "./core/model.js";
+import type { BaselineEntry, Detector, IgnoreRule, PackageFacts, Report } from "./core/model.js";
 import { introducedFacts } from "./core/diff.js";
 import { readManifestFacts } from "./ecosystems/npm/manifest.js";
 import { readLockfile, readLockfileFile, detectOtherLockfiles } from "./ecosystems/npm/lockfile.js";
@@ -17,6 +17,8 @@ export interface ScanOptions {
   detectors?: Detector[];
   /** Suppressions from config; matched findings are reported but do not affect the verdict. */
   ignore?: readonly IgnoreRule[];
+  /** Recorded baseline; matched (pre-existing) findings are reported but do not affect the verdict. */
+  baseline?: readonly BaselineEntry[];
   /** Injected for a deterministic `generatedAt` and age in tests. */
   now?: () => Date;
 }
@@ -47,6 +49,7 @@ function reportContext(options: ScanOptions, target: string, unverified: string[
     unverified,
     generatedAt: timestamp(options),
     ...(options.ignore === undefined ? {} : { ignore: options.ignore }),
+    ...(options.baseline === undefined ? {} : { baseline: options.baseline }),
   };
 }
 

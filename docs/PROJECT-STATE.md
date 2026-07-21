@@ -67,7 +67,10 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   `ignore` suppressions that require a reason and are shown as suppressed, not
   hidden; CLI flags override config). `main` protection now requires a review
   and restricts merges to the owner.
-  Next in M1: baseline command, terminal polish, Action PR comment.
+  M1.4 done: `vetguard baseline` records current findings to
+  `.vetguard-baseline.json`; later scans report those as baselined (suppressed)
+  and fail only on new findings; verified live end to end.
+  Next in M1: terminal polish, Action PR comment.
 
 ## Stack
 
@@ -91,7 +94,8 @@ or `node dist/cli.js scan [dir]` after build.
   (`applyIgnores`: config suppressions), `rules/` (pure detectors + registry
   index).
 - `src/config.ts` - loads/validates `vetguard.config.json` (failOn, offline,
-  ignore-with-mandatory-reason).
+  ignore-with-mandatory-reason). `src/baseline-io.ts` - reads/writes
+  `.vetguard-baseline.json`; `src/core/baseline.ts` - pure `applyBaseline`.
 - `src/ecosystems/npm/` - `manifest.ts` (package.json reader, source
   classification), `registry.ts` (registry client), `downloads.ts` (downloads
   API client), `enrich.ts` (folds registry + downloads facts into

@@ -38,6 +38,8 @@ vetguard check <pkg>    Vet a single package before installing
 vetguard diff --base <lockfile> [--head <lockfile>]
                         Scan only the dependencies a change introduces
                         (head defaults to ./package-lock.json)
+vetguard baseline [dir] Record current findings so later scans fail only on new
+                        ones (adopt on an existing project, ratchet down later)
 vetguard --help         Show help
 vetguard --version      Show version
 
@@ -83,6 +85,22 @@ configuration error, not a silent skip. A suppressed finding is still shown in
 the report (marked suppressed, with its reason) but does not affect the verdict
 or exit code. The point is an audit trail: you can always see what was waved
 through and why.
+
+### Adopt on an existing project (baseline)
+
+A repository that has not been scanned before will usually have some
+pre-existing findings. Rather than fix them all before you can turn vetguard on,
+record a baseline and ratchet down over time:
+
+```
+vetguard baseline        # writes .vetguard-baseline.json (commit it)
+```
+
+Later scans report the baselined findings as suppressed and pass; only findings
+**not** in the baseline fail the build. Commit the file so the whole team shares
+the same starting line, then shrink it as you clean things up. A finding's
+identity in the baseline includes its exact version, so a dependency bump is
+re-evaluated rather than grandfathered forever.
 
 ## Use on pull requests
 
