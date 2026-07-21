@@ -75,7 +75,19 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   M1.6 done: the GitHub Action gains a `comment: true` input posting one
   sticky PR comment (updated in place, never stacked); dogfooded in
   `.github/workflows/pr-scan.yml`. **Milestone 1 (frictionless adoption)
-  complete.** Next: Milestone 2 (complete/correct verdicts: OSV known-cve,
+  complete.**
+- 2026-07-21: **v0.2.0 published; Milestone 1 audit remediated.** A full audit
+  of the seven M1 PRs produced eight findings (tracked in
+  AUDIT-M1-REMEDIATION.md), all closed. The self-scan now has real teeth via
+  offline-capable name detection: typosquat and hallucination-name fire on a
+  corpus resemblance during an `--offline` scan (low severity), reason-threaded
+  so a transient online failure never false-positives; an introduced look-alike
+  is caught with no network and fails CI. Also: stale docs fixed, the diff
+  resolved-identity key decision recorded, the sticky-comment lookup hardened to
+  the actions bot, and the repo hardened (squash-only, delete-branch-on-merge,
+  secret scanning + push protection, Dependabot; vitest bumped to 4 after a
+  full-gate check). **vetguard@0.2.0 is live on npm with a verified provenance
+  attestation.** Next: Milestone 2 (complete/correct verdicts: OSV known-cve,
   accuracy evaluation gate).
 
 ## Stack
@@ -143,6 +155,6 @@ batch API. Cross-run disk cache is still a follow-up.
 ## Known caveats
 
 - Version is single-sourced from package.json (read at runtime by
-  `src/index.ts`); published as vetguard@0.1.0.
+  `src/index.ts`); current published release is vetguard@0.2.0.
 - `npm audit` reports vulnerabilities in dev dependencies only (build/test
   toolchain), not shipped code.
