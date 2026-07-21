@@ -16,6 +16,23 @@ export function depunctuate(name: string): string {
   return name.toLowerCase().replace(SEPARATORS, "");
 }
 
+/**
+ * Splits a name into meaningful tokens for recombination analysis: lowercased,
+ * scope dropped, split on separators, with pure-numeric and single-character
+ * fragments removed. A glued single-word name (jscodeshift) yields one token
+ * and is out of scope for token matching.
+ */
+export function tokenize(name: string): string[] {
+  const lower = name.toLowerCase();
+  const withoutScope = lower.startsWith("@") ? lower.slice(lower.indexOf("/") + 1) : lower;
+  return withoutScope.split(/[/\-_.]+/).filter((t) => t.length > 1 && !/^\d+$/.test(t));
+}
+
+/** Order-independent key for a token set, so reordered names collide. */
+export function sortedTokenKey(tokens: readonly string[]): string {
+  return [...tokens].sort().join(" ");
+}
+
 /** All strings within OSA distance 1 of `word` (deletion, transposition, substitution, insertion). */
 export function edits1(word: string): Set<string> {
   const result = new Set<string>();

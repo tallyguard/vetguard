@@ -187,13 +187,14 @@ Operational:
     unpublished-version detector (pinned version absent from registry;
     verified live via express@99.99.99); typosquat detector with the bundled
     npm-high-impact corpus (self-membership suppression first, risk-gated,
-    length-scaled; `scripts/refresh-popular.mjs` regenerates the corpus).
-  - Follow-ups queued: hallucination-name (token recombination, reuses the
-    corpus token vocabulary); lockfile v2/v3 resolution (unlocks
-    unpublished-version at scan time, not just `check`); cross-run disk cache
-    (currently in-run memo only); JSON output; then Phase 2
-    behavioural/backdoor detectors (capability-signals, obfuscation,
-    agent-injection).
+    length-scaled; `scripts/refresh-popular.mjs` regenerates the corpus);
+    hallucination-name detector (token recombination: convention-affix drop and
+    reorder/scope-drop; catches the `unused-imports` slopsquat; cross-package
+    novel-token blends like react-codeshift remain out of scope).
+  - Follow-ups queued: lockfile v2/v3 resolution (unlocks unpublished-version
+    at scan time, not just `check`); cross-run disk cache (currently in-run
+    memo only); JSON output; then Phase 2 behavioural/backdoor detectors
+    (capability-signals, obfuscation, agent-injection).
 - **Phase 2 - deep analysis**: tarball/node_modules inspection, capability
   and obfuscation signals, agent-injection detector, OSV known-cve,
   lockfile-integrity, manifest-confusion. Hostile-input tests land here.

@@ -64,6 +64,10 @@ is always traceable to why. Live today:
   transposition, or separator swap away). A popular package is never flagged as
   a squat of another, and an established look-alike is left alone; the signal
   only becomes a finding on a nonexistent, young, or low-adoption package.
+- **hallucination-name**: the name recombines the tokens of a popular package,
+  the slopsquat pattern where an AI reorders tokens or drops a convention prefix
+  (`unused-imports` for `eslint-plugin-unused-imports`). Same risk gating as
+  typosquat, so established packages that merely share tokens are not flagged.
 
 ### On backdoors
 

@@ -30,14 +30,16 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   (pinned version absent from registry; verified live via express@99.99.99),
   `typosquat` (near-miss of a popular name from the bundled npm-high-impact
   corpus; self-membership suppression first, then risk-gated; verified live:
-  self-scan clean, lodahs/webback flag). The live self-scan and established
-  packages (express, left-pad, @ui5/cli) stay clean (no false positives).
-  Note: `react-codeshift` now EXISTS on the registry (already squatted), so
-  nonexistent-package cannot catch it, which is why young-package and the
-  name-similarity detectors matter.
-  Next: `hallucination-name` (token recombination); lockfile v2/v3 resolution;
-  cross-run disk cache; JSON output; then Phase 2 behavioural/backdoor
-  detectors.
+  self-scan clean, lodahs/webback flag), `hallucination-name` (token
+  recombination: reorder or convention-affix drop; verified live: the
+  documented `unused-imports` slopsquat is now flagged as an affix-drop of
+  eslint-plugin-unused-imports, which every prior check missed). The live
+  self-scan and established packages (express, left-pad, react-router-dom)
+  stay clean (no false positives).
+  Next: lockfile v2/v3 resolution; cross-run disk cache; JSON output; then
+  Phase 2 behavioural/backdoor detectors (capability-signals, obfuscation,
+  agent-injection). hallucination-name covers affix-drop and reorder/scope-drop;
+  cross-package novel-token blends (react-codeshift) remain out of scope.
 
 ## Stack
 
