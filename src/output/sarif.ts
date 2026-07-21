@@ -1,7 +1,7 @@
 import type { Detector, Report, Severity } from "../core/model.js";
 import { builtinDetectors } from "../core/rules/index.js";
 
-const INFO_URI = "https://github.com/Poolchaos/vetguard";
+const INFO_URI = "https://github.com/tallyguard/vetguard";
 
 const LEVEL: Record<Severity, "error" | "warning" | "note"> = {
   critical: "error",

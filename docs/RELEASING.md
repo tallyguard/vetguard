@@ -31,7 +31,7 @@ server and no cost.
    provenance.
 
 After the first successful publish, `npx vetguard` and the reusable GitHub
-Action (`uses: Poolchaos/vetguard@v1`) work for everyone.
+Action (`uses: tallyguard/vetguard@v1`) work for everyone.
 
 ## Manual fallback
 

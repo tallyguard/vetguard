@@ -73,7 +73,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: Poolchaos/vetguard@v1
+      - uses: tallyguard/vetguard@v1
         with:
           fail-on: high # fail the check only on high/critical findings
       - if: always()

@@ -16,7 +16,7 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
 ## Status
 
 - 2026-07-21: **Phase 0 complete.** Named `vetguard`, Apache-2.0, public repo
-  (github.com/Poolchaos/vetguard, `main` protected). Toolchain, core model +
+  (github.com/tallyguard/vetguard, `main` protected). Toolchain, core model +
   engine, npm manifest reader, `nonexistent-package` detector, terminal
   output, CLI, CI, and open-source governance shipped and pushed.
 - 2026-07-21: **Phase 1 in progress.** Registry client, registry enrichment
