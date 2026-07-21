@@ -19,18 +19,21 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   (github.com/Poolchaos/vetguard, `main` protected). Toolchain, core model +
   engine, npm manifest reader, `nonexistent-package` detector, terminal
   output, CLI, CI, and open-source governance shipped and pushed.
-- 2026-07-21: **Phase 1 in progress.** Registry client (injectable fetch,
-  in-run memoization, offline-safe, honest degradation), registry enrichment
-  collector, and the `check <pkg>` command landed. `nonexistent-package` now
-  fires on real lookups. Verified live: `check express` clean; a nonexistent
-  name flags HIGH (exit 1); `--offline` reports could-not-verify. Note:
-  `react-codeshift` (the documented hallucinated name) now EXISTS on the
-  registry, so nonexistent-package does not catch it. That is expected and is
-  the reason the post-registration detectors below are the next priority.
-  Next: npm downloads API + `young-package`, then `typosquat` /
-  `hallucination-name` (name-similarity vs a popular corpus),
-  `install-scripts`, `unpublished-version`; lockfile v2/v3 resolution;
-  cross-run disk cache; JSON output.
+- 2026-07-21: **Phase 1 in progress.** Registry client, registry enrichment
+  collector, and `check <pkg>` landed (PR #1). `nonexistent-package` fires on
+  real lookups. Dogfood self-scan test + scan orchestration extracted (PR #2).
+  Downloads collector (npm downloads API), package-age (`ageDays`) and
+  `versionCount` facts, and the `young-package` detector landed (PR #3).
+  Detectors live: `nonexistent-package`, `young-package`. Verified: live
+  self-scan and established packages (express, left-pad, @ui5/cli) stay clean
+  (no false positives); young-package firing logic covered by unit tests
+  including the age boundary. Note: `react-codeshift` now EXISTS on the
+  registry (already squatted), so nonexistent-package cannot catch it, which
+  is why young-package and the name-similarity detectors matter.
+  Next: `typosquat` / `hallucination-name` (name-similarity vs a bundled
+  popular-package corpus), `install-scripts`, `unpublished-version` (facts
+  already collected); lockfile v2/v3 resolution; cross-run disk cache; JSON
+  output.
 
 ## Stack
 
@@ -52,8 +55,9 @@ or `node dist/cli.js scan [dir]` after build.
 - `src/core/` - `model.ts` (types), `engine.ts` (runDetectors + verdict),
   `rules/` (pure detectors + registry index).
 - `src/ecosystems/npm/` - `manifest.ts` (package.json reader, source
-  classification), `registry.ts` (registry client), `enrich.ts` (folds
-  registry facts into PackageFacts), `spec.ts` (`check` argument parser).
+  classification), `registry.ts` (registry client), `downloads.ts` (downloads
+  API client), `enrich.ts` (folds registry + downloads facts into
+  PackageFacts, computes ageDays), `spec.ts` (`check` argument parser).
   Lockfile/tarball collectors land next.
 - `src/scan.ts` - `scanProject` / `checkPackage` orchestration (used by the
   CLI and tests; keeps the CLI thin).

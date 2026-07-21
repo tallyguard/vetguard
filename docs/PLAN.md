@@ -179,13 +179,13 @@ Operational:
   output. Done when hallucinated/nonexistent names flag correctly and the
   top-100 popular packages scan clean.
   - Done: registry client (injectable fetch, in-run memoization, offline,
-    honest degradation), enrichment collector, `check` command,
-    nonexistent-package firing on live lookups.
-  - Follow-ups queued: npm downloads API + young-package; typosquat and
-    hallucination-name (needs the bundled popular-package corpus);
-    install-scripts and unpublished-version (facts already collected);
-    lockfile v2/v3 resolution; cross-run disk cache (currently in-run memo
-    only); JSON output.
+    honest degradation), downloads client, enrichment collector (folds
+    registry + downloads facts, computes ageDays), `check` command,
+    detectors nonexistent-package and young-package firing on live lookups.
+  - Follow-ups queued: typosquat and hallucination-name (needs the bundled
+    popular-package corpus); install-scripts and unpublished-version (facts
+    already collected); lockfile v2/v3 resolution; cross-run disk cache
+    (currently in-run memo only); JSON output.
 - **Phase 2 - deep analysis**: tarball/node_modules inspection, capability
   and obfuscation signals, agent-injection detector, OSV known-cve,
   lockfile-integrity, manifest-confusion. Hostile-input tests land here.

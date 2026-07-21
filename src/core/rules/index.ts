@@ -1,5 +1,6 @@
 import type { Detector } from "../model.js";
 import { nonexistentPackage } from "./nonexistent-package.js";
+import { youngPackage } from "./young-package.js";
 
 /** All built-in detectors. New detectors are registered here. */
-export const builtinDetectors: Detector[] = [nonexistentPackage];
+export const builtinDetectors: Detector[] = [nonexistentPackage, youngPackage];

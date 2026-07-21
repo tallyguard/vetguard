@@ -81,4 +81,32 @@ describe("enrichWithRegistry", () => {
     );
     expect(facts.map((f) => f.name)).toEqual(names);
   });
+
+  it("computes ageDays from firstPublishAt against an injected now", async () => {
+    const client = clientReturning({
+      young: {
+        status: "found",
+        packument: {
+          name: "young",
+          firstPublishAt: "2026-07-01T00:00:00.000Z",
+          versionCount: 1,
+          hasInstallScript: false,
+        },
+      },
+    });
+    const { facts } = await enrichWithRegistry([fact({ name: "young" })], client, {
+      now: () => new Date("2026-07-21T00:00:00.000Z"),
+    });
+    expect(facts[0]?.ageDays).toBe(20);
+    expect(facts[0]?.versionCount).toBe(1);
+  });
+
+  it("folds weekly downloads from the downloads client", async () => {
+    const client = clientReturning({
+      p: { status: "found", packument: { name: "p", versionCount: 3, hasInstallScript: false } },
+    });
+    const downloads = { getWeeklyDownloads: async () => 42 };
+    const { facts } = await enrichWithRegistry([fact({ name: "p" })], client, { downloads });
+    expect(facts[0]?.weeklyDownloads).toBe(42);
+  });
 });

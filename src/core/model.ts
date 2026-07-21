@@ -34,6 +34,10 @@ export interface PackageFacts {
   versionPublished?: boolean;
   firstPublishAt?: string;
   latestPublishAt?: string;
+  /** Days since the package name was first published, computed at collection time. */
+  ageDays?: number;
+  /** Number of published versions of this name. */
+  versionCount?: number;
   weeklyDownloads?: number;
   hasInstallScript?: boolean;
   repositoryUrl?: string;
