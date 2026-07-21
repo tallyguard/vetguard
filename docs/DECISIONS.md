@@ -17,6 +17,16 @@ Repo will be created public (see next entry). The repo directory name
 ("npm-package-vulenrability-detector", a typo) is unrelated to the package
 name and left as-is.
 
+## 2026-07-21: Repository moved to the tallyguard org
+
+The repo moved from a personal account to github.com/tallyguard/vetguard. The
+npm account that will own the package is connected to the tallyguard org, and
+publishing from a repo under that org is what lets npm provenance attribute the
+package to its real source. All repository/homepage/bugs/action/SARIF
+references were updated, the remote repointed, history pushed, and branch
+protection re-applied (same policy). Branch protection contexts, secrets
+(NPM_TOKEN), and the release are set up on the new repo.
+
 ## 2026-07-21: scan reads the lockfile tree; CI dogfood is offline
 
 `scan` prefers the resolved package-lock.json (v2/v3) tree over the manifest,
