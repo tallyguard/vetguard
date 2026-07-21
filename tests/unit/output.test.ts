@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { renderJson, JSON_SCHEMA_VERSION } from "../../src/output/json.js";
 import { renderMarkdown, MARKDOWN_COMMENT_MARKER } from "../../src/output/markdown.js";
+import { renderTerminal } from "../../src/output/terminal.js";
 import { resolveExitCode } from "../../src/output/exit-code.js";
 import type { Finding, Report } from "../../src/core/model.js";
 
@@ -74,6 +75,30 @@ describe("renderMarkdown", () => {
     const md = renderMarkdown(report([{ ...finding("high"), packageName: "<img src=x>" }]));
     expect(md).not.toContain("<img");
     expect(md).toContain("&lt;img src=x&gt;");
+  });
+});
+
+describe("renderTerminal", () => {
+  it("emits no ANSI codes by default and colors when enabled", () => {
+    const r = report([finding("high")]);
+    expect(renderTerminal(r)).not.toContain("\x1b[");
+    // high label and the findings verdict are both red.
+    expect(renderTerminal(r, { color: true })).toContain("\x1b[31m");
+  });
+
+  it("colors the verdict green when clean", () => {
+    expect(renderTerminal(report([]), { color: true })).toContain("\x1b[32mclean");
+  });
+
+  it("quiet mode prints only findings and the verdict", () => {
+    const out = renderTerminal(report([finding("high")]), { quiet: true });
+    expect(out).not.toContain("scanned");
+    expect(out).toContain("(typosquat)");
+    expect(out.trimEnd().endsWith("Verdict: findings")).toBe(true);
+  });
+
+  it("quiet mode on a clean report is just the verdict", () => {
+    expect(renderTerminal(report([]), { quiet: true })).toBe("Verdict: clean");
   });
 });
 
