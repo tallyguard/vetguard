@@ -83,8 +83,8 @@ npm run test:watch     # vitest (watch mode)
 ```
 
 The CI gate (`.github/workflows/ci.yml`, Node 20 and 22) runs, in order:
-typecheck, lint, format:check, test, build, then a dogfood scan
-(`node dist/cli.js scan .`). Before calling any nontrivial change done, run
+typecheck, lint, format:check, test, build, then an offline dogfood scan
+(`node dist/cli.js scan . --offline`). Before calling any nontrivial change done, run
 typecheck, lint, and test and report the results; run build for anything that
 touches the CLI entry, exports, or the bundle. A change that fails the gate is
 not done.
@@ -246,8 +246,10 @@ manually-run job.
 
 - **Dogfood.** `tests/dogfood/self-scan.test.ts` runs vetguard against its own
   repo (offline, network-free) on every test run and asserts it does not crash
-  on the real manifest and flags nothing in its own dependencies. CI also runs
-  a live self-scan (`node dist/cli.js scan .`). Keep both green; a self-scan
+  on the real manifest and flags nothing in its own dependencies. The CI gate
+  runs that self-scan offline (`node dist/cli.js scan . --offline`); the
+  pull-request workflow (`pr-scan.yml`) also runs it live, but that run is
+  informational and does not gate the merge. Keep both green; a self-scan
   finding is a real signal, either fix the dependency or fix the detector.
 
 - Add or adjust tests for any behaviour change, especially detection logic:
