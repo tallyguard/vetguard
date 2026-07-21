@@ -53,11 +53,13 @@ runs:
         code=${PIPESTATUS[0]}
 
         # Optional sticky PR comment: update the existing vetguard comment in place
-        # (found by its marker) or create one. A read-only token on a fork PR cannot
-        # comment, so never let that fail the job.
+        # (matched by its marker AND the github-actions[bot] author, so a PR author
+        # cannot pre-seed a marker comment to redirect the update; this holds only
+        # while GH_TOKEN is the built-in github.token) or create one. A read-only
+        # token on a fork PR cannot comment, so never let that fail the job.
         if [ "$VETGUARD_COMMENT" = "true" ] && [ -n "${VETGUARD_PR:-}" ]; then
           existing=$(gh api "repos/${VETGUARD_REPO}/issues/${VETGUARD_PR}/comments" \
-            --jq 'map(select(.body | contains("<!-- vetguard-report -->"))) | .[0].id // empty' 2>/dev/null || true)
+            --jq 'map(select((.body | contains("<!-- vetguard-report -->")) and .user.login == "github-actions[bot]")) | .[0].id // empty' 2>/dev/null || true)
           if [ -n "$existing" ]; then
             gh api -X PATCH "repos/${VETGUARD_REPO}/issues/comments/${existing}" \
               -F body=@vetguard-report.md >/dev/null 2>&1 || echo "vetguard: could not update the PR comment"
