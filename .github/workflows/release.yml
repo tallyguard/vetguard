@@ -6,18 +6,20 @@ on:
 
 permissions:
   contents: read
-  id-token: write # npm provenance
+  id-token: write # mints the OIDC token npm exchanges for a short-lived publish credential
 
 jobs:
   publish:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest # GitHub-hosted runner; self-hosted is not supported for trusted publishing
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version: 24 # bundles npm >= 11.5.1, the floor for OIDC trusted publishing
           registry-url: https://registry.npmjs.org
           cache: npm
+      # Node 22 ships npm 10.9.x, below the 11.5.1 floor; upgrade so the OIDC exchange runs.
+      - run: npm install -g npm@latest
       - run: npm ci
       - name: Verify the release tag matches package.json
         run: |
@@ -31,6 +33,6 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      # No token, no --provenance: OIDC is auto-detected via id-token: write and the trusted
+      # publisher configured on npm, and provenance is generated automatically for a public repo.
       - run: npm publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
