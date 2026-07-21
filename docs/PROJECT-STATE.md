@@ -24,7 +24,9 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   real lookups. Dogfood self-scan test + scan orchestration extracted (PR #2).
   Downloads collector (npm downloads API), package-age (`ageDays`) and
   `versionCount` facts, and the `young-package` detector landed (PR #3).
-  Detectors live: `nonexistent-package`, `young-package`. Verified: live
+  Detectors live: `nonexistent-package`, `young-package`, `install-scripts`
+  (install lifecycle scripts correlated with risk facts; established popular
+  packages like esbuild are suppressed, verified live). Verified: live
   self-scan and established packages (express, left-pad, @ui5/cli) stay clean
   (no false positives); young-package firing logic covered by unit tests
   including the age boundary. Note: `react-codeshift` now EXISTS on the

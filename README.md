@@ -53,6 +53,19 @@ is always traceable to why. Live today:
 - **young-package**: a recently first-published name with low or unknown
   adoption, the profile of a fresh registration standing in for a hallucinated
   or look-alike name.
+- **install-scripts**: a package that runs a `preinstall`/`install`/
+  `postinstall` script (the classic backdoor execution vector) and is not
+  widely established. Popular packages that legitimately build native code are
+  not flagged; a fresh or obscure package running install code is.
+
+### On backdoors
+
+vetguard targets backdoor _behaviours_: install-time code execution today, and
+capability signals (unexpected network, filesystem, and process access),
+obfuscation, and prompt injection aimed at coding agents next. No static
+scanner can prove a package is free of backdoors, a novel or heavily obfuscated
+one can evade heuristics, so vetguard raises evidenced signals and reports "no
+findings", never "safe".
 
 ## Principles
 
