@@ -1,5 +1,6 @@
 /** Public library API. The CLI is a thin consumer of these exports. */
 export type {
+  Advisory,
   Confidence,
   DependencyKind,
   DependencySource,
@@ -47,6 +48,13 @@ export {
   type DownloadsClient,
   type DownloadsClientOptions,
 } from "./ecosystems/npm/downloads.js";
+export {
+  createOsvClient,
+  type OsvClient,
+  type OsvClientOptions,
+  type AdvisoryLookup,
+  type AdvisoryQuery,
+} from "./ecosystems/npm/osv.js";
 export {
   enrichWithRegistry,
   type EnrichmentResult,

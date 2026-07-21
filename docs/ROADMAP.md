@@ -101,7 +101,7 @@ minutes, on a real repo, without reading docs.
 Goal: vetguard is a complete answer (a dev needs no second scanner for
 dependencies) and its accuracy is measured, not asserted.
 
-- **2.1 known-cve via OSV.dev.** Batch query resolved name@version pairs
+- **2.1 known-cve via OSV.dev (DONE).** Batch query resolved name@version pairs
   against the OSV API (batched, cached, offline-honest, `unverified` on API
   failure). Map severity from CVSS ranges; evidence links the advisory ID and
   URL. This is table stakes: without it devs must still run npm audit. Done

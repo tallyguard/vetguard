@@ -3,6 +3,45 @@
 Append-only. One entry per decision that would otherwise be re-litigated.
 Format: date, decision, reason, alternatives rejected.
 
+## 2026-07-21: Known-CVE detection via OSV.dev
+
+The `known-cve` detector answers "does this resolved version have a known
+advisory?" against OSV.dev (`src/ecosystems/npm/osv.ts`). It is table stakes:
+without it a developer still needs `npm audit`.
+
+- Collection is a batched pass: POST `/v1/querybatch` returns advisory ids per
+  `name@version` (chunked at 1000), then GET `/v1/vulns/{id}` fetches each detail
+  once. Two in-run caches (name@version and id); the detail fan-out is bounded at
+  concurrency 8 across the whole batch, not per package. Only registry-sourced
+  facts with an exact resolved version are queried.
+- Honest degradation is the spine. `knownVulnerabilities` is `undefined` (not
+  checked), `[]` (checked clean), or non-empty. Offline, any batch or parse
+  failure, a null or non-array result entry, a hit with no usable id, and a
+  registry package with no exact version (a range, or a manifest-only scan) all
+  mark the package unverified, so the verdict degrades to could-not-verify. A
+  scan that checked zero advisories never reads clean. `--offline` disables OSV.
+- Severity maps by `resolveAdvisorySeverity` (`src/ecosystems/npm/cvss.ts`): take
+  the higher of the GHSA qualitative label (`database_specific.severity`) and a
+  hand-rolled CVSS v3.0/v3.1 base-score band, so a low label cannot mask a higher
+  CVSS; clamp a matched advisory to at least `low` (a known vuln must trip
+  `--fail-on low`, never `info`); floor to medium when neither a label nor a
+  parseable CVSS_V3 vector is present.
+- Untrusted input: OSV data is treated as hostile. The advisory id is
+  shape-validated (`/^[A-Za-z0-9._-]{1,128}$/`) before it reaches a raw terminal
+  render or the deterministic URL; summaries are control-stripped and truncated;
+  the detail GET path segment is `encodeURIComponent`d; the severity resolver is
+  total (never throws on a malformed shape).
+
+Rejected: a CVSS npm dependency (would refute near-zero-deps; the parser is
+hand-rolled); computing CVSS_V4 scores (materially more complex and near-empty
+for npm/GHSA, so floored to medium with the vector quoted); guessing severity
+high or low on missing data (guessing high burns the FP budget, guessing low
+leans toward a false-safe). Accepted limits, each a follow-up: the OSV response
+body is parsed unbounded like the registry/downloads clients; at most 25
+advisories per package are itemized; `querybatch` pagination is not consumed
+(single-version lookups do not paginate); ignore and baseline suppress a
+package's advisories as a group, not per-CVE.
+
 ## 2026-07-21: esbuild pinned via overrides to clear a dev-server advisory
 
 The toolchain (tsup, tsx, and vite via vitest) pulls esbuild. vite@8 requires
