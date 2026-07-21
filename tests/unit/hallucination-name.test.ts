@@ -52,9 +52,30 @@ describe("hallucination-name detector", () => {
     ).toHaveLength(0);
   });
 
-  it("does not judge when existence is unknown", () => {
+  it("fires low on a deliberate offline scan", () => {
+    const found = detector.detect(
+      facts({
+        name: "unused-imports",
+        existsOnRegistry: undefined,
+        existenceUnverifiedReason: "offline",
+      }),
+    );
+    expect(found).toHaveLength(1);
+    expect(found[0]?.severity).toBe("low");
+    expect(found[0]?.confidence).toBe("low");
+    expect(found[0]?.evidence).toContain("eslint-plugin-unused-imports");
+    expect(found[0]?.evidence).toContain("unverified");
+  });
+
+  it("stays silent on a transient registry error (no rate-limit false positive)", () => {
     expect(
-      detector.detect(facts({ name: "unused-imports", existsOnRegistry: undefined })),
+      detector.detect(
+        facts({
+          name: "unused-imports",
+          existsOnRegistry: undefined,
+          existenceUnverifiedReason: "error",
+        }),
+      ),
     ).toHaveLength(0);
   });
 

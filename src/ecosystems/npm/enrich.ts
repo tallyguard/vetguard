@@ -59,7 +59,9 @@ export async function enrichWithRegistry(
     }
     if (lookup.status === "unverified") {
       unverified.push(fact.name);
-      return fact;
+      const existenceUnverifiedReason: "offline" | "error" =
+        lookup.reason === "offline" ? "offline" : "error";
+      return { ...fact, existenceUnverifiedReason };
     }
 
     const p = lookup.packument;

@@ -30,6 +30,12 @@ export interface PackageFacts {
   source: DependencySource;
   /** Whether the registry has any record of this name at all. */
   existsOnRegistry?: boolean;
+  /**
+   * When existence is unknown, why: the registry was deliberately not consulted
+   * (`offline`) or a lookup failed (`error`). Lets a detector offer an
+   * offline-only heuristic without firing on a transient online failure.
+   */
+  existenceUnverifiedReason?: "offline" | "error";
   /** Whether this exact version is still published. */
   versionPublished?: boolean;
   firstPublishAt?: string;

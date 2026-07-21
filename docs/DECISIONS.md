@@ -3,6 +3,29 @@
 Append-only. One entry per decision that would otherwise be re-litigated.
 Format: date, decision, reason, alternatives rejected.
 
+## 2026-07-21: Name detectors are offline-capable via a threaded unverified reason
+
+Offline (and in the CI dogfood, which runs `scan . --offline`), the registry is
+never consulted, so `existsOnRegistry` is undefined and the name detectors used
+to produce nothing, which left the self-scan unable to catch an introduced
+typosquat or slopsquat with no network. The collector now threads why existence
+is unknown into `PackageFacts.existenceUnverifiedReason` (`offline` when the
+registry was deliberately skipped, `error` on a lookup failure). `typosquat` and
+`hallucination-name` fire on a corpus near-miss or recombination when the reason
+is `offline`, at severity `low` and confidence `low`: offline there are no
+existence or adoption facts to corroborate, and the typosquat confident-transform
+bump is not applied. `low` keeps `--fail-on medium|high` consumers unaffected
+while still exiting non-zero under the default no-threshold gate the dogfood
+relies on. On a transient online `error` the detectors stay silent, so a
+rate-limited lookup on a resembling name is never a false positive. Corpus
+self-membership is checked first, so established packages (all of vetguard's own
+deps) are suppressed; adding a future non-corpus dependency whose name resembles
+a top-ranked corpus name will fire `low` and turn the offline dogfood red, which
+is intended and cleared with a `vetguard.config.json` `ignore` carrying a reason.
+Rejected: firing on every unknown-existence lookup (a transient failure on a
+resembling name would false-fail the default gate); a `non-critical` severity
+(would trip `--fail-on medium`).
+
 ## 2026-07-21: diff keys on resolved identity, not just name@version
 
 `introducedFacts` in `src/core/diff.ts` keys each dependency on

@@ -33,11 +33,33 @@ export function createTyposquatDetector(corpus: PopularCorpus = defaultCorpus): 
       if (pkg.source !== "registry") return [];
       if (pkg.name.startsWith("@")) return [];
       if (corpus.has(pkg.name)) return [];
-      // Honest degradation: without an existence fact we cannot judge.
-      if (pkg.existsOnRegistry === undefined) return [];
+      // Offline-capable: when existence is unknown we can still flag a corpus
+      // near-miss, but only on a deliberate offline scan, never on a transient
+      // registry failure (which would turn a rate-limit into a false positive).
+      const offline =
+        pkg.existsOnRegistry === undefined && pkg.existenceUnverifiedReason === "offline";
+      if (pkg.existsOnRegistry === undefined && !offline) return [];
 
       const near = corpus.findNearMiss(pkg.name);
       if (!near) return [];
+
+      if (offline) {
+        // No existence or adoption facts offline: the lowest honest tier, and
+        // the confident-transform bump below is deliberately not applied.
+        return [
+          {
+            ruleId: this.id,
+            severity: "low",
+            confidence: "low",
+            packageName: pkg.name,
+            ...(pkg.version === undefined ? {} : { packageVersion: pkg.version }),
+            title: "Name closely resembles a popular package",
+            detail: `This name differs from the popular package "${near.target}" by a single ${near.transform}. Attackers register look-alikes to catch typos and hallucinated names. Confirm you meant this package and not "${near.target}".`,
+            evidence: `resembles "${near.target}" (popularity rank ${near.rank + 1}) via ${near.transform}; existence and adoption unverified (offline scan)`,
+            ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
+          },
+        ];
+      }
 
       const downloads = pkg.weeklyDownloads;
       const established = downloads !== undefined && downloads >= TYPOSQUAT_POPULAR_FLOOR;

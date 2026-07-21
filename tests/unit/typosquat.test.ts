@@ -54,8 +54,25 @@ describe("typosquat detector", () => {
     expect(found).toHaveLength(0);
   });
 
-  it("does not judge when existence is unknown (offline honesty)", () => {
-    expect(detector.detect(facts({ name: "expres", existsOnRegistry: undefined }))).toHaveLength(0);
+  it("fires low on a deliberate offline scan, without the confident-transform bump", () => {
+    // chakl transposes chalk, a confident transform that raises confidence
+    // online; the offline branch must stay low/low and not apply that bump.
+    const found = detector.detect(
+      facts({ name: "chakl", existsOnRegistry: undefined, existenceUnverifiedReason: "offline" }),
+    );
+    expect(found).toHaveLength(1);
+    expect(found[0]?.severity).toBe("low");
+    expect(found[0]?.confidence).toBe("low");
+    expect(found[0]?.evidence).toContain("chalk");
+    expect(found[0]?.evidence).toContain("unverified");
+  });
+
+  it("stays silent on a transient registry error (no rate-limit false positive)", () => {
+    expect(
+      detector.detect(
+        facts({ name: "expres", existsOnRegistry: undefined, existenceUnverifiedReason: "error" }),
+      ),
+    ).toHaveLength(0);
   });
 
   it("skips scoped names", () => {
