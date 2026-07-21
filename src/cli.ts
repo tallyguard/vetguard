@@ -5,6 +5,7 @@ import type { Report, Severity } from "./core/model.js";
 import { scanProject, checkPackage } from "./scan.js";
 import { renderTerminal } from "./output/terminal.js";
 import { renderJson } from "./output/json.js";
+import { renderSarif } from "./output/sarif.js";
 import { resolveExitCode } from "./output/exit-code.js";
 import { VERSION } from "./index.js";
 
@@ -21,6 +22,7 @@ Options:
   --offline                  Do not contact the registry; unverifiable facts
                              are reported as "could not verify", never "safe".
   --json                     Print the report as JSON instead of text.
+  --sarif                    Print SARIF 2.1.0 for GitHub code scanning.
   --fail-on <severity>       Exit non-zero only when a finding at or above this
                              severity exists (critical|high|medium|low|info).
                              Default: any finding exits non-zero.
@@ -33,6 +35,7 @@ const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
 interface RunOptions {
   offline: boolean;
   json: boolean;
+  sarif: boolean;
   failOn: Severity | undefined;
 }
 
@@ -45,6 +48,7 @@ async function main(argv: string[]): Promise<number> {
       version: { type: "boolean", short: "v" },
       offline: { type: "boolean" },
       json: { type: "boolean" },
+      sarif: { type: "boolean" },
       "fail-on": { type: "string" },
     },
   });
@@ -69,6 +73,7 @@ async function main(argv: string[]): Promise<number> {
   const options: RunOptions = {
     offline: values.offline === true,
     json: values.json === true,
+    sarif: values.sarif === true,
     failOn: failOnRaw as Severity | undefined,
   };
 
@@ -107,7 +112,12 @@ async function runCheck(specInput: string, options: RunOptions): Promise<number>
 }
 
 function emit(report: Report, options: RunOptions): number {
-  console.log(options.json ? renderJson(report, VERSION) : renderTerminal(report));
+  const output = options.sarif
+    ? renderSarif(report, VERSION)
+    : options.json
+      ? renderJson(report, VERSION)
+      : renderTerminal(report);
+  console.log(output);
   return resolveExitCode(report, options.failOn);
 }
 

@@ -38,6 +38,7 @@ vetguard --version      Show version
 
   --offline             Do not contact the registry
   --json                Print the report as JSON (for CI and tooling)
+  --sarif               Print SARIF 2.1.0 for GitHub code scanning
   --fail-on <severity>  Exit non-zero only at or above this severity
                         (critical|high|medium|low|info); default: any finding
 ```

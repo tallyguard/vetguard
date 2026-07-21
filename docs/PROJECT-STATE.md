@@ -78,8 +78,8 @@ or `node dist/cli.js scan [dir]` after build.
   name-distance helpers).
 - `scripts/refresh-popular.mjs` - dev-only corpus regenerator (`npm run
 refresh:popular`).
-- `src/output/` - `terminal.ts`, `json.ts` (machine-readable report),
-  `exit-code.ts` (`--fail-on` gating). sarif/markdown come next.
+- `src/output/` - `terminal.ts`, `json.ts`, `sarif.ts` (GitHub code
+  scanning), `exit-code.ts` (`--fail-on` gating).
 - `tests/dogfood/self-scan.test.ts` - vetguard scans its own repo offline on
   every test run (see CLAUDE.md section 7).
 - `src/cli.ts` - CLI entry (shebang preserved by esbuild). `src/index.ts` -

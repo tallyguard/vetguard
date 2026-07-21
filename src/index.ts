@@ -15,6 +15,7 @@ export { runDetectors } from "./core/engine.js";
 export { builtinDetectors } from "./core/rules/index.js";
 export { renderTerminal } from "./output/terminal.js";
 export { renderJson, JSON_SCHEMA_VERSION } from "./output/json.js";
+export { renderSarif } from "./output/sarif.js";
 export { resolveExitCode } from "./output/exit-code.js";
 export { readManifestFacts, classifySource } from "./ecosystems/npm/manifest.js";
 export {
