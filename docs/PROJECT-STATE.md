@@ -36,8 +36,14 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   eslint-plugin-unused-imports, which every prior check missed). The live
   self-scan and established packages (express, left-pad, react-router-dom)
   stay clean (no false positives).
-  Next: lockfile v2/v3 resolution; cross-run disk cache; JSON output; then
-  Phase 2 behavioural/backdoor detectors (capability-signals, obfuscation,
+  Lockfile v2/v3 resolution done: `scan` reads the resolved package-lock.json
+  tree (transitive deps + exact versions), falls back to the manifest with a
+  warning otherwise; unpublished-version now fires at scan time (verified live
+  on a lockfile pinning express@99.99.99). CI dogfood runs `--offline` for
+  determinism; install-scripts uses age as an establishment proxy when adoption
+  is unknown (fsevents no longer false-positives under rate-limit).
+  Next: cross-run disk cache; JSON/SARIF output + GitHub Action; then Phase 2
+  behavioural/backdoor detectors (capability-signals, obfuscation,
   agent-injection). hallucination-name covers affix-drop and reorder/scope-drop;
   cross-package novel-token blends (react-codeshift) remain out of scope.
 

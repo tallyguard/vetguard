@@ -191,10 +191,13 @@ Operational:
     hallucination-name detector (token recombination: convention-affix drop and
     reorder/scope-drop; catches the `unused-imports` slopsquat; cross-package
     novel-token blends like react-codeshift remain out of scope).
-  - Follow-ups queued: lockfile v2/v3 resolution (unlocks unpublished-version
-    at scan time, not just `check`); cross-run disk cache (currently in-run
-    memo only); JSON output; then Phase 2 behavioural/backdoor detectors
-    (capability-signals, obfuscation, agent-injection).
+  - Also done: lockfile v2/v3 resolution (`scan` reads the resolved
+    package-lock.json tree; manifest fallback with a warning; unpublished-version
+    fires at scan time). CI dogfood runs offline; install-scripts uses age as an
+    establishment proxy when adoption is unknown.
+  - Follow-ups queued: cross-run disk cache (currently in-run memo only);
+    JSON/SARIF output + GitHub Action; then Phase 2 behavioural/backdoor
+    detectors (capability-signals, obfuscation, agent-injection).
 - **Phase 2 - deep analysis**: tarball/node_modules inspection, capability
   and obfuscation signals, agent-injection detector, OSV known-cve,
   lockfile-integrity, manifest-confusion. Hostile-input tests land here.

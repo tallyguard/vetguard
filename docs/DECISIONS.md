@@ -17,6 +17,26 @@ Repo will be created public (see next entry). The repo directory name
 ("npm-package-vulenrability-detector", a typo) is unrelated to the package
 name and left as-is.
 
+## 2026-07-21: scan reads the lockfile tree; CI dogfood is offline
+
+`scan` prefers the resolved package-lock.json (v2/v3) tree over the manifest,
+so it covers transitive dependencies and exact versions (which lets
+unpublished-version fire at scan time). Unsupported lockfiles (v1, yarn, pnpm)
+fall back to the manifest with a warning, never a silent skip. Because a
+full-tree online scan makes hundreds of registry/downloads calls and its result
+depends on third-party dependency state and API rate limits, the CI dogfood
+step runs `--offline` for determinism; the offline dogfood unit test remains the
+"stays clean" guarantee. A live full-tree smoke test is deferred until a
+cross-run cache and gentler rate limiting exist.
+
+## 2026-07-21: install-scripts uses age as an establishment proxy
+
+When the downloads API rate-limits during a large scan, adoption is unknown; an
+old package (> 365 days) with an install script is then treated as established
+and suppressed rather than flagged on missing data. Age only applies when
+downloads are unknown; a known-low download count still stands. This keeps a
+years-old native-build package like fsevents from false-positiving under load.
+
 ## 2026-07-21: Popular-package corpus source
 
 The bundled corpus for name-similarity detection is npm-high-impact (wooorm,

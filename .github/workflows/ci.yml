@@ -28,4 +28,4 @@ jobs:
       - run: npm test
       - run: npm run build
       - name: Dogfood - vetguard scans itself
-        run: node dist/cli.js scan .
+        run: node dist/cli.js scan . --offline

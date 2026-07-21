@@ -16,6 +16,12 @@ export { builtinDetectors } from "./core/rules/index.js";
 export { renderTerminal } from "./output/terminal.js";
 export { readManifestFacts, classifySource } from "./ecosystems/npm/manifest.js";
 export {
+  readLockfile,
+  detectOtherLockfiles,
+  nameFromLockPath,
+  type LockfileOutcome,
+} from "./ecosystems/npm/lockfile.js";
+export {
   createRegistryClient,
   encodePackageName,
   type Packument,

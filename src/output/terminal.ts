@@ -11,7 +11,12 @@ const SEVERITY_LABEL: Record<Severity, string> = {
 /** Renders a report as plain text. No color codes yet; kept dependency-free. */
 export function renderTerminal(report: Report): string {
   const lines: string[] = [];
-  lines.push(`vetguard: scanned ${report.packagesScanned} package(s) in ${report.target}`);
+  const from = report.basis === "lockfile" ? " from package-lock.json" : "";
+  lines.push(`vetguard: scanned ${report.packagesScanned} package(s) in ${report.target}${from}`);
+
+  for (const warning of report.warnings ?? []) {
+    lines.push(`warning: ${warning}`);
+  }
 
   if (report.findings.length === 0) {
     lines.push(

@@ -80,6 +80,10 @@ export interface Report {
   /** Packages we could not fully verify (offline, unsupported source, etc.). */
   unverified: string[];
   generatedAt: string;
+  /** Whether the scan read a resolved lockfile tree or only the manifest. */
+  basis?: "lockfile" | "manifest";
+  /** Non-fatal notices, e.g. an unsupported lockfile that forced a manifest fallback. */
+  warnings?: string[];
 }
 
 export const SEVERITY_ORDER: Record<Severity, number> = {

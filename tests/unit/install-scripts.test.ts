@@ -29,6 +29,11 @@ describe("install-scripts detector", () => {
     expect(found).toHaveLength(0);
   });
 
+  it("suppresses an old package even when adoption is unknown (rate-limited scan)", () => {
+    const found = installScripts.detect(facts({ ageDays: 2000, weeklyDownloads: undefined }));
+    expect(found).toHaveLength(0);
+  });
+
   it("flags a young package with an install script as high", () => {
     const found = installScripts.detect(facts({ ageDays: 4, weeklyDownloads: 30 }));
     expect(found).toHaveLength(1);

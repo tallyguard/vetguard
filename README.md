@@ -39,6 +39,12 @@ vetguard --version      Show version
   --offline             Do not contact the registry
 ```
 
+`scan` reads the resolved dependency tree from `package-lock.json` (v2 or v3),
+so it covers transitive dependencies and exact installed versions. Without a
+supported lockfile it falls back to the manifest's declared dependencies and
+says so; yarn and pnpm lockfiles are detected and reported as not yet supported
+rather than silently skipped.
+
 Exit codes: `0` clean or could-not-verify, `1` findings, `2` usage or read
 error. `check` makes vetguard usable as a pre-install gate, including for
 coding agents that add dependencies.

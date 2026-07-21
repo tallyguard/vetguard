@@ -13,6 +13,7 @@ import type { Detector, Finding, PackageFacts } from "../model.js";
 export const INSTALL_SCRIPT_TRUST_DOWNLOADS = 10_000;
 export const INSTALL_SCRIPT_YOUNG_DAYS = 30;
 export const INSTALL_SCRIPT_LOW_DOWNLOADS = 100;
+export const INSTALL_SCRIPT_ESTABLISHED_DAYS = 365;
 
 export const installScripts: Detector = {
   id: "install-scripts",
@@ -26,8 +27,16 @@ export const installScripts: Detector = {
     const downloads = pkg.weeklyDownloads;
 
     // A widely-installed package running an install script is normal (native
-    // builds, prebuilt binaries). Suppress to protect the false-positive budget.
-    if (downloads !== undefined && downloads >= INSTALL_SCRIPT_TRUST_DOWNLOADS) return [];
+    // builds, prebuilt binaries). When adoption is unmeasurable (the download
+    // API rate-limits during a large scan), age stands in as the establishment
+    // proxy so an old package is not flagged on missing data alone.
+    const establishedByDownloads =
+      downloads !== undefined && downloads >= INSTALL_SCRIPT_TRUST_DOWNLOADS;
+    const oldWithUnknownAdoption =
+      downloads === undefined &&
+      pkg.ageDays !== undefined &&
+      pkg.ageDays > INSTALL_SCRIPT_ESTABLISHED_DAYS;
+    if (establishedByDownloads || oldWithUnknownAdoption) return [];
 
     const young = pkg.ageDays !== undefined && pkg.ageDays <= INSTALL_SCRIPT_YOUNG_DAYS;
     const lowDownloads = downloads !== undefined && downloads < INSTALL_SCRIPT_LOW_DOWNLOADS;

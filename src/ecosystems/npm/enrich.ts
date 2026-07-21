@@ -68,7 +68,9 @@ export async function enrichWithRegistry(
       ...(p.requestedVersionPublished === undefined
         ? {}
         : { versionPublished: p.requestedVersionPublished }),
-      hasInstallScript: p.hasInstallScript,
+      // A lockfile reports the install-script status of the installed version;
+      // the registry only reports the latest, so a lockfile fact wins.
+      hasInstallScript: fact.hasInstallScript ?? p.hasInstallScript,
       ...(p.repositoryUrl === undefined ? {} : { repositoryUrl: p.repositoryUrl }),
       ...(weeklyDownloads === undefined ? {} : { weeklyDownloads }),
     } satisfies PackageFacts;
