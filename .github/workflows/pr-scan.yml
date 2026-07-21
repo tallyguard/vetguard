@@ -32,8 +32,9 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           node dist/cli.js scan . --markdown | tee vetguard-report.md >> "$GITHUB_STEP_SUMMARY" || true
+          # Match our marker AND the actions-bot author so a PR author cannot redirect the update.
           existing=$(gh api "repos/${REPO}/issues/${PR}/comments" \
-            --jq 'map(select(.body | contains("<!-- vetguard-report -->"))) | .[0].id // empty' 2>/dev/null || true)
+            --jq 'map(select((.body | contains("<!-- vetguard-report -->")) and .user.login == "github-actions[bot]")) | .[0].id // empty' 2>/dev/null || true)
           if [ -n "$existing" ]; then
             gh api -X PATCH "repos/${REPO}/issues/comments/${existing}" -F body=@vetguard-report.md >/dev/null || true
           else

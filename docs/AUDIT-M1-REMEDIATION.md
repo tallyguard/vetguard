@@ -29,7 +29,7 @@ out of scope this cycle.
 | 5   | DECISIONS.md missing the diff resolved-identity-key entry     | Low          | docs        | Done (2026-07-21)  |
 | 6   | CLAUDE.md calls the CI dogfood "live"; it runs `--offline`    | Low          | docs        | Done (2026-07-21)  |
 | 7   | Repo security settings disabled on a public security repo     | Info         | gh settings | Done (2026-07-21)  |
-| 8   | Sticky-comment marker match is first-wins (redirectable)      | Low          | code        | Planned            |
+| 8   | Sticky-comment marker match is first-wins (redirectable)      | Low          | code        | Done (2026-07-21)  |
 
 ## Direction decided this cycle
 
