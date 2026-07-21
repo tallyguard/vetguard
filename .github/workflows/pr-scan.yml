@@ -1,0 +1,33 @@
+name: Dependency scan
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      # vetguard is not published yet, so this dogfoods the PR-scan flow from the
+      # local build. External consumers use the published action (see README).
+      - name: Scan dependencies (SARIF)
+        run: node dist/cli.js scan . --sarif > vetguard.sarif || true
+      - name: Scan dependencies (summary)
+        run: node dist/cli.js scan . | tee -a "$GITHUB_STEP_SUMMARY" || true
+      - name: Upload SARIF
+        if: always()
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: vetguard.sarif

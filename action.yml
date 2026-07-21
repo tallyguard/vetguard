@@ -1,0 +1,44 @@
+name: vetguard
+description: Scan npm dependencies for AI-era supply-chain threats (slopsquats, typosquats, malicious install scripts).
+branding:
+  icon: shield
+  color: green
+
+inputs:
+  directory:
+    description: Project directory to scan.
+    default: "."
+  fail-on:
+    description: Severity threshold to fail the job on (critical|high|medium|low|info). Empty means any finding fails.
+    default: ""
+  sarif-file:
+    description: Path to write a SARIF report to. Empty means do not write one.
+    default: vetguard.sarif
+  version:
+    description: vetguard version to run (npm dist-tag or version).
+    default: latest
+
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      env:
+        VETGUARD_DIR: ${{ inputs.directory }}
+        VETGUARD_FAIL_ON: ${{ inputs.fail-on }}
+        VETGUARD_SARIF: ${{ inputs.sarif-file }}
+        VETGUARD_VERSION: ${{ inputs.version }}
+      run: |
+        set -uo pipefail
+        pkg="vetguard@${VETGUARD_VERSION}"
+        gate=(scan "$VETGUARD_DIR")
+        [ -n "$VETGUARD_FAIL_ON" ] && gate+=(--fail-on "$VETGUARD_FAIL_ON")
+
+        # SARIF is written for every run so code scanning stays in sync, so the
+        # findings exit code here must not abort the step.
+        if [ -n "$VETGUARD_SARIF" ]; then
+          npx --yes "$pkg" scan "$VETGUARD_DIR" --sarif > "$VETGUARD_SARIF" || true
+        fi
+
+        # The human-readable run carries the gate; its exit code fails the job.
+        npx --yes "$pkg" "${gate[@]}" | tee -a "${GITHUB_STEP_SUMMARY:-/dev/stdout}"
+        exit "${PIPESTATUS[0]}"

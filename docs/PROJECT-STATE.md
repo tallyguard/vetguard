@@ -42,10 +42,15 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   on a lockfile pinning express@99.99.99). CI dogfood runs `--offline` for
   determinism; install-scripts uses age as an establishment proxy when adoption
   is unknown (fsevents no longer false-positives under rate-limit).
-  Next: cross-run disk cache; JSON/SARIF output + GitHub Action; then Phase 2
-  behavioural/backdoor detectors (capability-signals, obfuscation,
-  agent-injection). hallucination-name covers affix-drop and reorder/scope-drop;
-  cross-package novel-token blends (react-codeshift) remain out of scope.
+  CI integration done: `--json`, `--sarif`, `--fail-on`; `action.yml` (composite,
+  npx-based, resolves on npm publish) and `.github/workflows/pr-scan.yml` (scans
+  our own PRs from source now, uploads SARIF, writes a job summary). All free:
+  runs on GitHub runners, no server.
+  Next: publish to npm (wire VERSION to a single source first); cross-run disk
+  cache; then Phase 2 behavioural/backdoor detectors (capability-signals,
+  obfuscation, agent-injection). hallucination-name covers affix-drop and
+  reorder/scope-drop; cross-package novel-token blends (react-codeshift) remain
+  out of scope.
 
 ## Stack
 

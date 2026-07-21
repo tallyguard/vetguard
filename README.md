@@ -53,6 +53,39 @@ Exit codes: `0` clean or could-not-verify, `1` findings, `2` usage or read
 error. `check` makes vetguard usable as a pre-install gate, including for
 coding agents that add dependencies.
 
+## Use on pull requests
+
+vetguard runs in GitHub Actions with no server and no cost: the scan happens on
+GitHub's runners (free on public repositories), posts results through the
+built-in `GITHUB_TOKEN`, and uploads SARIF so findings show up as PR annotations
+and in the Security tab.
+
+```yaml
+# .github/workflows/dependency-scan.yml
+name: Dependency scan
+on:
+  pull_request:
+permissions:
+  contents: read
+  security-events: write
+jobs:
+  vetguard:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: Poolchaos/vetguard@v1
+        with:
+          fail-on: high # fail the check only on high/critical findings
+      - if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: vetguard.sarif
+```
+
+> The reusable action above resolves once vetguard is published to npm. This
+> repository already scans its own pull requests from source via
+> [.github/workflows/pr-scan.yml](.github/workflows/pr-scan.yml).
+
 ## What it checks
 
 Every finding carries a rule id, severity, and concrete evidence, so a verdict

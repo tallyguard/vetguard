@@ -195,9 +195,12 @@ Operational:
     package-lock.json tree; manifest fallback with a warning; unpublished-version
     fires at scan time). CI dogfood runs offline; install-scripts uses age as an
     establishment proxy when adoption is unknown.
-  - Follow-ups queued: cross-run disk cache (currently in-run memo only);
-    JSON/SARIF output + GitHub Action; then Phase 2 behavioural/backdoor
-    detectors (capability-signals, obfuscation, agent-injection).
+  - Also done: JSON + SARIF output, `--fail-on` gating, `action.yml` composite
+    action, and a self-hosted PR-scan workflow (dogfoods the scan-PRs flow;
+    SARIF upload + job summary; free, no server).
+  - Follow-ups queued: publish to npm (wire VERSION first); cross-run disk
+    cache; then Phase 2 behavioural/backdoor detectors (capability-signals,
+    obfuscation, agent-injection).
 - **Phase 2 - deep analysis**: tarball/node_modules inspection, capability
   and obfuscation signals, agent-injection detector, OSV known-cve,
   lockfile-integrity, manifest-confusion. Hostile-input tests land here.
