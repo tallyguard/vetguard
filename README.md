@@ -237,10 +237,13 @@ verifiable, not asserted:
 - **Small, auditable, open source.** The published tarball is a handful of files
   (the bundled CLI, type declarations, `LICENSE`, `README`, `package.json`),
   built from the source in this repository under Apache-2.0.
-- **It scans itself.** vetguard runs against its own dependencies on every test
-  run (offline) and every pull request
-  ([.github/workflows/pr-scan.yml](.github/workflows/pr-scan.yml)); a finding in
-  its own supply chain fails its own build.
+- **It scans itself.** On every test run and in CI, vetguard scans its own
+  dependencies offline: an introduced name that resembles a popular package (a
+  typosquat or slopsquat) is caught with no network and fails the build. The
+  pull-request workflow
+  ([.github/workflows/pr-scan.yml](.github/workflows/pr-scan.yml)) also runs a
+  full live scan for the signals that need the registry. Its own supply chain is
+  held to the same bar it applies to yours.
 
 ## Development
 

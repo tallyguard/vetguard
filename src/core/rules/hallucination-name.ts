@@ -26,10 +26,37 @@ export function createHallucinationNameDetector(corpus: PopularCorpus = defaultC
       if (pkg.source !== "registry") return [];
       if (pkg.name.startsWith("@")) return [];
       if (corpus.has(pkg.name)) return [];
-      if (pkg.existsOnRegistry === undefined) return [];
+      // Offline-capable: flag a corpus recombination when existence is unknown,
+      // but only on a deliberate offline scan, never on a transient registry
+      // failure (which would turn a rate-limit into a false positive).
+      const offline =
+        pkg.existsOnRegistry === undefined && pkg.existenceUnverifiedReason === "offline";
+      if (pkg.existsOnRegistry === undefined && !offline) return [];
 
       const match = corpus.findRecombination(pkg.name);
       if (!match) return [];
+
+      const how =
+        match.kind === "affix-drop"
+          ? `drops the convention prefix of "${match.victim}"`
+          : `reorders the tokens of "${match.victim}"`;
+
+      if (offline) {
+        // No existence or adoption facts offline: the lowest honest tier.
+        return [
+          {
+            ruleId: this.id,
+            severity: "low",
+            confidence: "low",
+            packageName: pkg.name,
+            ...(pkg.version === undefined ? {} : { packageVersion: pkg.version }),
+            title: "Name looks like a recombination of a popular package",
+            detail: `This name ${how}, a popular package, but is not itself that package. AI assistants hallucinate plausible names like this, and attackers register them. Confirm you did not mean "${match.victim}".`,
+            evidence: `token match to "${match.victim}" (popularity rank ${match.rank + 1}), ${match.kind}; existence and adoption unverified (offline scan)`,
+            ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
+          },
+        ];
+      }
 
       const downloads = pkg.weeklyDownloads;
       const established = downloads !== undefined && downloads >= HALLUCINATION_POPULAR_FLOOR;
@@ -54,11 +81,6 @@ export function createHallucinationNameDetector(corpus: PopularCorpus = defaultC
           confidence = "low";
         }
       }
-
-      const how =
-        match.kind === "affix-drop"
-          ? `drops the convention prefix of "${match.victim}"`
-          : `reorders the tokens of "${match.victim}"`;
 
       return [
         {

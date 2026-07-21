@@ -43,11 +43,21 @@ describe("enrichWithRegistry", () => {
     expect(facts[0]?.firstPublishAt).toBe("2016-01-01T00:00:00.000Z");
   });
 
-  it("records an unverified lookup without asserting existence", async () => {
+  it("threads an offline unverified reason so offline-capable detectors can fire", async () => {
     const client = clientReturning({ maybe: { status: "unverified", reason: "offline" } });
     const { facts, unverified } = await enrichWithRegistry([fact({ name: "maybe" })], client);
     expect(facts[0]?.existsOnRegistry).toBeUndefined();
+    expect(facts[0]?.existenceUnverifiedReason).toBe("offline");
     expect(unverified).toEqual(["maybe"]);
+  });
+
+  it("maps a transient lookup failure to an error reason, not offline", async () => {
+    const client = clientReturning({
+      flaky: { status: "unverified", reason: "registry responded 429" },
+    });
+    const { facts } = await enrichWithRegistry([fact({ name: "flaky" })], client);
+    expect(facts[0]?.existsOnRegistry).toBeUndefined();
+    expect(facts[0]?.existenceUnverifiedReason).toBe("error");
   });
 
   it("does not look up non-registry sources", async () => {
