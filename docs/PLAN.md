@@ -185,9 +185,11 @@ Operational:
   - Also done: install-scripts detector (install lifecycle script correlated
     with risk facts; popular packages suppressed to hold the FP budget);
     unpublished-version detector (pinned version absent from registry;
-    verified live via express@99.99.99).
-  - Follow-ups queued: typosquat and hallucination-name (needs the bundled
-    popular-package corpus); lockfile v2/v3 resolution (unlocks
+    verified live via express@99.99.99); typosquat detector with the bundled
+    npm-high-impact corpus (self-membership suppression first, risk-gated,
+    length-scaled; `scripts/refresh-popular.mjs` regenerates the corpus).
+  - Follow-ups queued: hallucination-name (token recombination, reuses the
+    corpus token vocabulary); lockfile v2/v3 resolution (unlocks
     unpublished-version at scan time, not just `check`); cross-run disk cache
     (currently in-run memo only); JSON output; then Phase 2
     behavioural/backdoor detectors (capability-signals, obfuscation,

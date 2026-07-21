@@ -5,9 +5,21 @@ import globals from "globals";
 
 export default [
   {
-    ignores: ["dist/**", "node_modules/**", "tests/fixtures/**", "coverage/**"],
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "tests/fixtures/**",
+      "coverage/**",
+      "src/ecosystems/npm/data/**",
+    ],
   },
   js.configs.recommended,
+  {
+    files: ["**/*.{js,mjs,cjs}"],
+    languageOptions: {
+      globals: { ...globals.node },
+    },
+  },
   {
     files: ["**/*.ts"],
     languageOptions: {

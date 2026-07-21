@@ -60,6 +60,10 @@ is always traceable to why. Live today:
 - **unpublished-version**: the package exists but the exact pinned version is
   not on the registry. Versions vanish when npm removes malware, so a pin the
   registry no longer serves is a strong tamper signal.
+- **typosquat**: the name is a near-miss of a popular package (a single edit,
+  transposition, or separator swap away). A popular package is never flagged as
+  a squat of another, and an established look-alike is left alone; the signal
+  only becomes a finding on a nonexistent, young, or low-adoption package.
 
 ### On backdoors
 

@@ -1,5 +1,5 @@
 dist
 coverage
 node_modules
-data/popular-packages.json
+src/ecosystems/npm/data
 tests/fixtures

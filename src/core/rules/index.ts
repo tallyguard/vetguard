@@ -3,6 +3,7 @@ import { nonexistentPackage } from "./nonexistent-package.js";
 import { youngPackage } from "./young-package.js";
 import { installScripts } from "./install-scripts.js";
 import { unpublishedVersion } from "./unpublished-version.js";
+import { typosquat } from "./typosquat.js";
 
 /** All built-in detectors. New detectors are registered here. */
 export const builtinDetectors: Detector[] = [
@@ -10,4 +11,5 @@ export const builtinDetectors: Detector[] = [
   youngPackage,
   installScripts,
   unpublishedVersion,
+  typosquat,
 ];

@@ -184,6 +184,12 @@ belongs:
   or a gotcha. Git history already records what changed and when; do not
   narrate it in a comment. When in doubt, leave it out; delete redundant
   comments you touch.
+  - **A comment must be true of the current code.** A stale or inaccurate
+    comment is a defect; fix or delete it when you touch the code it describes.
+  - **Never explain a change or a fix in a comment** ("now handles X", "fixed
+    Y", "changed to Z"). Comments describe the code as it is, not its history.
+  - **No useless code.** No dead branches, unreachable arms, unused exports,
+    or commented-out code. If it does not run or is never used, delete it.
 - **No em dashes anywhere.** Use periods, commas, or hyphens; convert any you
   touch.
 - **No emojis** in code, commits, or user-facing strings.

@@ -27,17 +27,17 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   Detectors live: `nonexistent-package`, `young-package`, `install-scripts`
   (install lifecycle scripts correlated with risk facts; established popular
   packages like esbuild are suppressed, verified live), `unpublished-version`
-  (pinned version absent from registry; verified live via express@99.99.99).
-  Verified: live
-  self-scan and established packages (express, left-pad, @ui5/cli) stay clean
-  (no false positives); young-package firing logic covered by unit tests
-  including the age boundary. Note: `react-codeshift` now EXISTS on the
-  registry (already squatted), so nonexistent-package cannot catch it, which
-  is why young-package and the name-similarity detectors matter.
-  Next: `typosquat` / `hallucination-name` (name-similarity vs a bundled
-  popular-package corpus), `install-scripts`, `unpublished-version` (facts
-  already collected); lockfile v2/v3 resolution; cross-run disk cache; JSON
-  output.
+  (pinned version absent from registry; verified live via express@99.99.99),
+  `typosquat` (near-miss of a popular name from the bundled npm-high-impact
+  corpus; self-membership suppression first, then risk-gated; verified live:
+  self-scan clean, lodahs/webback flag). The live self-scan and established
+  packages (express, left-pad, @ui5/cli) stay clean (no false positives).
+  Note: `react-codeshift` now EXISTS on the registry (already squatted), so
+  nonexistent-package cannot catch it, which is why young-package and the
+  name-similarity detectors matter.
+  Next: `hallucination-name` (token recombination); lockfile v2/v3 resolution;
+  cross-run disk cache; JSON output; then Phase 2 behavioural/backdoor
+  detectors.
 
 ## Stack
 
@@ -61,31 +61,35 @@ or `node dist/cli.js scan [dir]` after build.
 - `src/ecosystems/npm/` - `manifest.ts` (package.json reader, source
   classification), `registry.ts` (registry client), `downloads.ts` (downloads
   API client), `enrich.ts` (folds registry + downloads facts into
-  PackageFacts, computes ageDays), `spec.ts` (`check` argument parser).
-  Lockfile/tarball collectors land next.
+  PackageFacts, computes ageDays), `spec.ts` (`check` argument parser),
+  `popular.ts` (corpus indexes + near-miss lookup), `data/popular-packages.ts`
+  (generated npm-high-impact snapshot). Lockfile/tarball collectors land next.
 - `src/scan.ts` - `scanProject` / `checkPackage` orchestration (used by the
   CLI and tests; keeps the CLI thin).
-- `src/util/` - `concurrency.ts` (bounded parallel map, dependency-free).
+- `src/util/` - `concurrency.ts` (bounded parallel map), `names.ts` (pure
+  name-distance helpers).
+- `scripts/refresh-popular.mjs` - dev-only corpus regenerator (`npm run
+refresh:popular`).
 - `src/output/` - `terminal.ts`. json/sarif/markdown come later.
 - `tests/dogfood/self-scan.test.ts` - vetguard scans its own repo offline on
   every test run (see CLAUDE.md section 7).
 - `src/cli.ts` - CLI entry (shebang preserved by esbuild). `src/index.ts` -
   public library API.
-- `tests/unit/` - Vitest unit tests (6 passing).
+- `tests/unit/` - Vitest unit tests.
 - `.github/workflows/ci.yml` - the gate on Node 20 + 22.
 - Governance (public repo): `CONTRIBUTING.md`, `SECURITY.md` (private
   disclosure), `CODE_OF_CONDUCT.md`, `.github/` PR and issue templates.
 
 ## External services and data sources
 
-Planned (PLAN.md), none wired yet: npm registry API, npm downloads API,
-OSV.dev batch API. All to be optional at runtime (`--offline`); responses
-cached locally.
+Wired: npm registry API (`registry.ts`), npm downloads API (`downloads.ts`),
+both optional at runtime (`--offline`) with in-run memoization. Bundled data:
+npm-high-impact corpus (dev-refreshed, not a runtime call). Planned: OSV.dev
+batch API. Cross-run disk cache is still a follow-up.
 
 ## Open questions (blocking, per gating rules)
 
-- None blocking. Next action: user creates the public GitHub repo for
-  `vetguard`. Non-blocking: local directory is still
+- None blocking. Non-blocking: local directory is still
   "npm-package-vulenrability-detector" (a typo, unrelated to the package
   name); rename is optional and does not affect anything.
 
