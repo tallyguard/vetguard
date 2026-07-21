@@ -24,7 +24,7 @@ out of scope this cycle.
 | --- | ------------------------------------------------------------- | ------------ | ----------- | ------------------ |
 | 1   | Self-scan does not block on findings; README overclaims       | Medium       | code + docs | Done (2026-07-21)  |
 | 2   | Offline dogfood cannot detect; "gains teeth" comment is false | Low          | code + docs | Done (2026-07-21)  |
-| 3   | README documents 0.2.0 features while pinned to 0.1.0         | Release-prep | docs        | Deferred to v0.2.0 |
+| 3   | README documents 0.2.0 features while pinned to 0.1.0         | Release-prep | docs        | Done (v0.2.0 prep) |
 | 4   | PROJECT-STATE.md + ROADMAP.md stale records                   | Low          | docs        | Done (2026-07-21)  |
 | 5   | DECISIONS.md missing the diff resolved-identity-key entry     | Low          | docs        | Done (2026-07-21)  |
 | 6   | CLAUDE.md calls the CI dogfood "live"; it runs `--offline`    | Low          | docs        | Done (2026-07-21)  |

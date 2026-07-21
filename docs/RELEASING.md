@@ -25,7 +25,7 @@ release.
 ## Version and Action-tag policy
 
 - Pre-1.0, releases are exact tags (`v0.1.0`, `v0.2.0`, ...) and the GitHub
-  Action must be pinned to an exact tag (`uses: tallyguard/vetguard@v0.1.0`),
+  Action must be pinned to an exact tag (`uses: tallyguard/vetguard@v0.2.0`),
   because 0.x minor versions may change behaviour.
 - At the 1.0 release, start maintaining a moving `v1` major tag that points at
   the latest 1.x release, so Action users can pin `@v1`. Update the README
