@@ -14,6 +14,9 @@ inputs:
   sarif-file:
     description: Path to write a SARIF report to. Empty means do not write one.
     default: vetguard.sarif
+  comment:
+    description: "Post or update a single sticky comment on the pull request. Requires pull-requests write permission."
+    default: "false"
   version:
     description: vetguard version to run (npm dist-tag or version).
     default: latest
@@ -26,19 +29,42 @@ runs:
         VETGUARD_DIR: ${{ inputs.directory }}
         VETGUARD_FAIL_ON: ${{ inputs.fail-on }}
         VETGUARD_SARIF: ${{ inputs.sarif-file }}
+        VETGUARD_COMMENT: ${{ inputs.comment }}
         VETGUARD_VERSION: ${{ inputs.version }}
+        VETGUARD_PR: ${{ github.event.pull_request.number }}
+        VETGUARD_REPO: ${{ github.repository }}
+        GH_TOKEN: ${{ github.token }}
       run: |
         set -uo pipefail
         pkg="vetguard@${VETGUARD_VERSION}"
         gate=(scan "$VETGUARD_DIR")
         [ -n "$VETGUARD_FAIL_ON" ] && gate+=(--fail-on "$VETGUARD_FAIL_ON")
 
-        # SARIF is written for every run so code scanning stays in sync, so the
-        # findings exit code here must not abort the step.
+        # SARIF is written for every run so code scanning stays in sync; a findings
+        # exit code here must not abort the step.
         if [ -n "$VETGUARD_SARIF" ]; then
           npx --yes "$pkg" scan "$VETGUARD_DIR" --sarif > "$VETGUARD_SARIF" || true
         fi
 
-        # The human-readable run carries the gate; its exit code fails the job.
-        npx --yes "$pkg" "${gate[@]}" | tee -a "${GITHUB_STEP_SUMMARY:-/dev/stdout}"
-        exit "${PIPESTATUS[0]}"
+        # One markdown run feeds both the job summary and the PR comment. It
+        # carries the gate, so its exit code fails the job.
+        npx --yes "$pkg" "${gate[@]}" --markdown \
+          | tee vetguard-report.md >> "${GITHUB_STEP_SUMMARY:-/dev/stdout}"
+        code=${PIPESTATUS[0]}
+
+        # Optional sticky PR comment: update the existing vetguard comment in place
+        # (found by its marker) or create one. A read-only token on a fork PR cannot
+        # comment, so never let that fail the job.
+        if [ "$VETGUARD_COMMENT" = "true" ] && [ -n "${VETGUARD_PR:-}" ]; then
+          existing=$(gh api "repos/${VETGUARD_REPO}/issues/${VETGUARD_PR}/comments" \
+            --jq 'map(select(.body | contains("<!-- vetguard-report -->"))) | .[0].id // empty' 2>/dev/null || true)
+          if [ -n "$existing" ]; then
+            gh api -X PATCH "repos/${VETGUARD_REPO}/issues/comments/${existing}" \
+              -F body=@vetguard-report.md >/dev/null 2>&1 || echo "vetguard: could not update the PR comment"
+          else
+            gh api -X POST "repos/${VETGUARD_REPO}/issues/${VETGUARD_PR}/comments" \
+              -F body=@vetguard-report.md >/dev/null 2>&1 || echo "vetguard: could not post a PR comment (fork PRs have a read-only token)"
+          fi
+        fi
+
+        exit "$code"

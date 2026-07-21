@@ -82,7 +82,7 @@ minutes, on a real repo, without reading docs.
   TTY detection, `NO_COLOR` and `--no-color` respected, aligned columns,
   `--quiet` (findings and verdict only). Done when output is readable in a
   dark terminal, a light terminal, and a CI log.
-- **1.6 Action PR comment.** Optional `comment: true` input posts or updates
+- **1.6 Action PR comment (DONE).** Optional `comment: true` input posts or updates
   a single sticky PR comment with the markdown report using the built-in
   GITHUB_TOKEN (`pull-requests: write` documented). Default off; job summary
   and SARIF annotations remain the default surface. Done when repeated runs
