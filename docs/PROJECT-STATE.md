@@ -72,7 +72,11 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   and fail only on new findings; verified live end to end.
   M1.5 done: terminal polish, ANSI colors by severity (TTY-gated, NO_COLOR /
   --no-color respected) and `--quiet` (findings + verdict only).
-  Next in M1: Action PR comment.
+  M1.6 done: the GitHub Action gains a `comment: true` input posting one
+  sticky PR comment (updated in place, never stacked); dogfooded in
+  `.github/workflows/pr-scan.yml`. **Milestone 1 (frictionless adoption)
+  complete.** Next: Milestone 2 (complete/correct verdicts: OSV known-cve,
+  accuracy evaluation gate).
 
 ## Stack
 

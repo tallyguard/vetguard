@@ -122,7 +122,8 @@ on:
   pull_request:
 permissions:
   contents: read
-  security-events: write
+  security-events: write # upload SARIF
+  pull-requests: write # only if comment: true
 jobs:
   vetguard:
     runs-on: ubuntu-latest
@@ -131,11 +132,17 @@ jobs:
       - uses: tallyguard/vetguard@v0.1.0
         with:
           fail-on: high # fail the check only on high/critical findings
+          comment: true # post/update a single sticky PR comment (optional)
       - if: always()
         uses: github/codeql-action/upload-sarif@v3
         with:
           sarif_file: vetguard.sarif
 ```
+
+`comment: true` posts one sticky comment and updates it in place on later
+pushes, so it never stacks. It needs `pull-requests: write`; leave it off (the
+default) to rely on the SARIF annotations and job summary alone. On pull requests
+from forks the token is read-only, so the comment is skipped without failing.
 
 > Pin the action to an exact release (`@v0.1.0`) while vetguard is pre-1.0, since
 > 0.x minor versions may change behaviour; a moving `@v1` tag will follow the
