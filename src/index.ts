@@ -13,7 +13,10 @@ export type {
   SuppressedFinding,
 } from "./core/model.js";
 export { applyIgnores } from "./core/ignore.js";
+export { applyBaseline, toBaselineEntries } from "./core/baseline.js";
 export { loadConfig, ConfigError, CONFIG_FILENAME, type Config } from "./config.js";
+export { readBaseline, writeBaseline, BaselineError, BASELINE_FILENAME } from "./baseline-io.js";
+export type { BaselineEntry } from "./core/model.js";
 export { SEVERITY_ORDER } from "./core/model.js";
 export { runDetectors } from "./core/engine.js";
 export { builtinDetectors } from "./core/rules/index.js";

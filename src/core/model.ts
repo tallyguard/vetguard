@@ -84,6 +84,18 @@ export interface IgnoreRule {
 /** A finding that matched an ignore rule; shown as suppressed, never hidden. */
 export type SuppressedFinding = Finding & { suppressedReason: string };
 
+/**
+ * One entry in a recorded baseline. A finding matching a baseline entry is
+ * pre-existing (it was present when the baseline was taken) and is reported as
+ * suppressed rather than failing the build; only findings absent from the
+ * baseline are new. Matched by rule, package, and exact version.
+ */
+export interface BaselineEntry {
+  rule: string;
+  package: string;
+  version?: string;
+}
+
 export type ScanVerdict = "clean" | "findings" | "could-not-verify";
 
 export interface Report {

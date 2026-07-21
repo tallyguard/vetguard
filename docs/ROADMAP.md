@@ -72,7 +72,7 @@ minutes, on a real repo, without reading docs.
   in the report as "suppressed (reason)". CLI flags override config. Done
   when an ignored finding shows as suppressed, not hidden, and an ignore
   without a reason is a config error.
-- **1.4 Baseline for brownfield adoption.** `vetguard baseline` writes
+- **1.4 Baseline for brownfield adoption (DONE).** `vetguard baseline` writes
   current findings to `.vetguard-baseline.json`; subsequent scans fail only
   on findings not in the baseline and report the baselined count. This is the
   single biggest unlock for existing repos: adopt today, ratchet later. Done

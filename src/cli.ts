@@ -4,6 +4,8 @@ import process from "node:process";
 import type { Report, Severity } from "./core/model.js";
 import { scanProject, checkPackage, diffScan, type ScanOptions } from "./scan.js";
 import { loadConfig, ConfigError } from "./config.js";
+import { readBaseline, writeBaseline, BaselineError } from "./baseline-io.js";
+import { toBaselineEntries } from "./core/baseline.js";
 import { renderTerminal } from "./output/terminal.js";
 import { renderJson } from "./output/json.js";
 import { renderSarif } from "./output/sarif.js";
@@ -20,6 +22,9 @@ Usage:
   vetguard diff --base <lockfile> [--head <lockfile>]
                              Scan only the dependencies a change introduces
                              (head defaults to ./package-lock.json)
+  vetguard baseline [dir]    Record current findings to .vetguard-baseline.json;
+                             later scans report those as baselined and fail only
+                             on new findings (adopt on a messy repo, ratchet down)
   vetguard --help            Show this help
   vetguard --version         Show version
 
@@ -90,7 +95,10 @@ async function main(argv: string[]): Promise<number> {
 
   if (command === "scan") {
     const dir = positionals[1] ?? process.cwd();
-    return runReport(dir, options, (opts) => scanProject(dir, opts));
+    return runReport(dir, options, (opts) => scanProject(dir, opts), dir);
+  }
+  if (command === "baseline") {
+    return runBaseline(positionals[1] ?? process.cwd(), options);
   }
   if (command === "check") {
     const spec = positionals[1];
@@ -125,24 +133,26 @@ async function runReport(
   configDir: string,
   cli: RunOptions,
   produce: (options: ScanOptions) => Promise<Report>,
+  baselineDir?: string,
 ): Promise<number> {
-  let config;
+  let scanOptions: ScanOptions;
+  let failOn: Severity | undefined;
   try {
-    config = await loadConfig(configDir);
+    const config = await loadConfig(configDir);
+    const baseline = baselineDir ? await readBaseline(baselineDir) : undefined;
+    failOn = cli.failOn ?? config?.failOn;
+    scanOptions = {
+      offline: cli.offline || config?.offline === true,
+      ...(config?.ignore ? { ignore: config.ignore } : {}),
+      ...(baseline ? { baseline } : {}),
+    };
   } catch (err) {
-    if (err instanceof ConfigError) {
+    if (err instanceof ConfigError || err instanceof BaselineError) {
       console.error(err.message);
       return 2;
     }
     throw err;
   }
-
-  const offline = cli.offline || config?.offline === true;
-  const failOn = cli.failOn ?? config?.failOn;
-  const scanOptions: ScanOptions = {
-    offline,
-    ...(config?.ignore ? { ignore: config.ignore } : {}),
-  };
 
   let report: Report;
   try {
@@ -153,6 +163,44 @@ async function runReport(
   }
   console.log(render(report, cli));
   return resolveExitCode(report, failOn);
+}
+
+/**
+ * Records the current active findings as the baseline. Config ignores still
+ * apply (already-suppressed findings are not baselined), but an existing
+ * baseline is not applied, so the snapshot captures everything the next scan
+ * would otherwise flag.
+ */
+async function runBaseline(dir: string, cli: RunOptions): Promise<number> {
+  let scanOptions: ScanOptions;
+  try {
+    const config = await loadConfig(dir);
+    scanOptions = {
+      offline: cli.offline || config?.offline === true,
+      ...(config?.ignore ? { ignore: config.ignore } : {}),
+    };
+  } catch (err) {
+    if (err instanceof ConfigError) {
+      console.error(err.message);
+      return 2;
+    }
+    throw err;
+  }
+
+  let report: Report;
+  try {
+    report = await scanProject(dir, scanOptions);
+  } catch (err) {
+    console.error(err instanceof Error ? err.message : String(err));
+    return 2;
+  }
+
+  const entries = toBaselineEntries(report.findings);
+  const filePath = await writeBaseline(dir, entries, new Date().toISOString());
+  console.log(
+    `Recorded ${entries.length} finding(s) to ${filePath}. Future scans report these as baselined and fail only on new findings.`,
+  );
+  return 0;
 }
 
 function render(report: Report, options: RunOptions): string {

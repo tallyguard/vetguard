@@ -1,6 +1,15 @@
-import type { Detector, Finding, IgnoreRule, PackageFacts, Report, ScanVerdict } from "./model.js";
+import type {
+  BaselineEntry,
+  Detector,
+  Finding,
+  IgnoreRule,
+  PackageFacts,
+  Report,
+  ScanVerdict,
+} from "./model.js";
 import { SEVERITY_ORDER } from "./model.js";
 import { applyIgnores } from "./ignore.js";
+import { applyBaseline } from "./baseline.js";
 
 interface DetectContext {
   target: string;
@@ -8,6 +17,7 @@ interface DetectContext {
   unverified: string[];
   generatedAt: string;
   ignore?: readonly IgnoreRule[];
+  baseline?: readonly BaselineEntry[];
 }
 
 /**
@@ -33,15 +43,17 @@ export function runDetectors(
       a.packageName.localeCompare(b.packageName),
   );
 
-  const { active, suppressed } = applyIgnores(raw, context.ignore ?? []);
-  const verdict = decideVerdict(active, context.unverified);
+  const ignored = applyIgnores(raw, context.ignore ?? []);
+  const baselined = applyBaseline(ignored.active, context.baseline ?? []);
+  const suppressed = [...ignored.suppressed, ...baselined.suppressed];
+  const verdict = decideVerdict(baselined.active, context.unverified);
 
   return {
     verdict,
     target: context.target,
     ecosystem: context.ecosystem,
     packagesScanned: facts.length,
-    findings: active,
+    findings: baselined.active,
     ...(suppressed.length > 0 ? { suppressed } : {}),
     unverified: context.unverified,
     generatedAt: context.generatedAt,
