@@ -153,6 +153,11 @@ Rules:
   the fact, the reason, the date.
 - Plans for multi-step work live in `docs/` as their own file (listed in the
   index), so a fresh session can resume from them.
+- **Keep `README.md` current.** It is the public front door: it must state
+  what vetguard is, which commands and detectors actually work today, and the
+  principles, and nothing stale. Update it in the same change that adds or
+  changes a user-facing command or detector. Keep it tight, no clutter, no
+  aspirational claims about code that does not exist yet.
 
 ### Doc visibility (this is a public repo)
 
