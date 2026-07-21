@@ -87,6 +87,13 @@ minutes, on a real repo, without reading docs.
   GITHUB_TOKEN (`pull-requests: write` documented). Default off; job summary
   and SARIF annotations remain the default surface. Done when repeated runs
   update one comment instead of stacking.
+- **1.7 "Is vetguard itself safe?" (DONE).** A verifiable trust section in the
+  README, provenance, zero runtime deps, no install scripts, no code
+  execution, no telemetry, self-scanning, each with a way for the reader to
+  check it themselves. A security scanner is exactly what an attacker would
+  disguise malware as, so self-trust is a first-class adoption factor. Also
+  set the repo description, homepage, and topics. Revisit at launch (M5) with
+  an OpenSSF Scorecard badge and a `CHANGELOG`.
 
 ## Milestone 2: Complete and correct verdicts
 
@@ -191,8 +198,13 @@ security-sensitive and gets hostile-input tests.
   unicode; packages shipping CLAUDE.md / .cursorrules / AGENTS.md. All quoted
   evidence stays escaped and truncated so the report itself cannot become an
   injection vector.
-- **4.6 lockfile-integrity detector.** Resolved URL not on
-  registry.npmjs.org, missing integrity hashes.
+- **4.6 lockfile-integrity detector (consider pulling forward).** Resolved URL
+  not on registry.npmjs.org, missing integrity hashes, or a same-version
+  repoint. The M1.2 diff-mode review showed diff mode can currently only report
+  a lockfile-poisoning repoint (same version, swapped `resolved`/`integrity`)
+  as "could not verify", not flag it, because no detector owns that signal.
+  This detector closes that gap and is arguably worth landing in M2 rather than
+  waiting for M4.
 
 Ordering note: milestones 3 and 4 are swappable. Reach (3) serves "all devs"
 fastest; depth (4) is the differentiator the maintainer has repeatedly asked

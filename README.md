@@ -152,19 +152,37 @@ scanner can prove a package is free of backdoors, a novel or heavily obfuscated
 one can evade heuristics, so vetguard raises evidenced signals and reports "no
 findings", never "safe".
 
-## Principles
+## Is vetguard itself safe?
 
+A fair question to ask of any security tool, a scanner is exactly what a
+supply-chain attacker would want to disguise malware as. Every claim below is
+verifiable, not asserted:
+
+- **Provenance-signed releases.** Every version is published from CI with npm
+  provenance: cryptographic proof the published bytes were built from this
+  public repository's tagged source, not tampered with in between. Verify with
+  `npm audit signatures` after install, or the verified badge on the
+  [npm page](https://www.npmjs.com/package/vetguard).
+- **Zero runtime dependencies.** vetguard installs nothing but itself, so there
+  is no transitive package that could be compromised, and every line that runs
+  is code you can read. Verify: `npm view vetguard dependencies` (empty).
+- **No install scripts.** `npm install vetguard` executes no code, there are no
+  `preinstall` / `install` / `postinstall` hooks. Verify: read its
+  `package.json`.
 - **Never executes the code it scans.** It reads manifests, lockfiles, and
-  package metadata as data.
-- **Honest verdicts.** When something cannot be verified (offline, private
-  registry, unsupported lockfile), vetguard reports "could not verify", never
+  package metadata as data; it never `require`s, imports, or evals a scanned
+  package.
+- **No telemetry, no phone-home.** The only network calls are the registry
+  lookups a scan needs, and `--offline` disables even those. Verify: run any
+  command with `--offline` and watch it work with no network.
+- **Honest verdicts.** When something cannot be verified (offline, off-registry
+  source, unsupported lockfile), vetguard reports "could not verify", never
   "safe".
-- **Near-zero runtime dependencies.** A supply-chain scanner should not ship a
-  large dependency tree of its own.
-- **No telemetry.** The only network calls are the registry lookups a scan
-  needs, and `--offline` disables even those.
-- **Dogfooded.** vetguard scans its own dependencies on every test run
-  (offline) and on every pull request
+- **Small, auditable, open source.** The published tarball is a handful of files
+  (the bundled CLI, type declarations, `LICENSE`, `README`, `package.json`),
+  built from the source in this repository under Apache-2.0.
+- **It scans itself.** vetguard runs against its own dependencies on every test
+  run (offline) and every pull request
   ([.github/workflows/pr-scan.yml](.github/workflows/pr-scan.yml)); a finding in
   its own supply chain fails its own build.
 
