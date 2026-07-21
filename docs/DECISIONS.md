@@ -17,6 +17,22 @@ Repo will be created public (see next entry). The repo directory name
 ("npm-package-vulenrability-detector", a typo) is unrelated to the package
 name and left as-is.
 
+## 2026-07-21: Publish via npm trusted publishing (OIDC), not a token
+
+The release workflow publishes with npm trusted publishing (OIDC): no
+long-lived npm token, credentials minted per-run from GitHub's id-token, and
+automatic provenance. Reason: npm is deprecating token-bypass-2FA publishing
+(config lock ~Aug 2026, direct-publish removal ~Jan 2027), and OIDC is the
+recommended, more secure replacement. Consequences baked into the setup:
+release.yml uses Node 24 + `npm install -g npm@latest` (OIDC needs npm >=
+11.5.1; Node 22 ships npm 10.9.x), drops NODE_AUTH_TOKEN, and drops
+`--provenance` (automatic under OIDC). `publishConfig.provenance` was removed so
+a local bootstrap publish does not fail trying to attest off-CI. Known
+limitation (npm/cli#8544): trusted publishing cannot be configured for a
+package that does not exist, so the first publish is a one-time local bootstrap;
+see docs/RELEASING.md. Rejected: granular access token in a repo secret (what
+npm is deprecating; a stored secret to leak/rotate).
+
 ## 2026-07-21: Repository moved to the tallyguard org
 
 The repo moved from a personal account to github.com/tallyguard/vetguard. The
