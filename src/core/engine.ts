@@ -1,5 +1,14 @@
-import type { Detector, Finding, PackageFacts, Report, ScanVerdict } from "./model.js";
+import type { Detector, Finding, IgnoreRule, PackageFacts, Report, ScanVerdict } from "./model.js";
 import { SEVERITY_ORDER } from "./model.js";
+import { applyIgnores } from "./ignore.js";
+
+interface DetectContext {
+  target: string;
+  ecosystem: string;
+  unverified: string[];
+  generatedAt: string;
+  ignore?: readonly IgnoreRule[];
+}
 
 /**
  * Runs every detector over every package's facts and aggregates a report.
@@ -9,29 +18,31 @@ import { SEVERITY_ORDER } from "./model.js";
 export function runDetectors(
   facts: PackageFacts[],
   detectors: Detector[],
-  context: { target: string; ecosystem: string; unverified: string[]; generatedAt: string },
+  context: DetectContext,
 ): Report {
-  const findings: Finding[] = [];
+  const raw: Finding[] = [];
   for (const pkg of facts) {
     for (const detector of detectors) {
-      findings.push(...detector.detect(pkg));
+      raw.push(...detector.detect(pkg));
     }
   }
 
-  findings.sort(
+  raw.sort(
     (a, b) =>
       SEVERITY_ORDER[b.severity] - SEVERITY_ORDER[a.severity] ||
       a.packageName.localeCompare(b.packageName),
   );
 
-  const verdict = decideVerdict(findings, context.unverified);
+  const { active, suppressed } = applyIgnores(raw, context.ignore ?? []);
+  const verdict = decideVerdict(active, context.unverified);
 
   return {
     verdict,
     target: context.target,
     ecosystem: context.ecosystem,
     packagesScanned: facts.length,
-    findings,
+    findings: active,
+    ...(suppressed.length > 0 ? { suppressed } : {}),
     unverified: context.unverified,
     generatedAt: context.generatedAt,
   };

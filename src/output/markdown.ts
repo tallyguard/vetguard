@@ -65,5 +65,15 @@ export function renderMarkdown(report: Report): string {
     lines.push(`Could not verify ${report.unverified.length} package(s).`);
   }
 
+  const suppressed = report.suppressed ?? [];
+  if (suppressed.length > 0) {
+    lines.push("");
+    lines.push(`${suppressed.length} finding(s) suppressed by config:`);
+    for (const f of suppressed) {
+      const pkg = f.packageVersion ? `${f.packageName}@${f.packageVersion}` : f.packageName;
+      lines.push(`- ${cell(pkg)} (${cell(f.ruleId)}): ${cell(f.suppressedReason)}`);
+    }
+  }
+
   return lines.join("\n") + "\n";
 }

@@ -62,8 +62,12 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
 --base <lockfile> [--head]`) scans only dependencies a change introduces
   (head-vs-base set difference), plus `--markdown` output for PR comments;
   verified live (an introduced typosquat flags, unchanged deps are skipped).
-  Next in M1: config file with mandatory-reason ignores, baseline command,
-  terminal polish, Action PR comment.
+  M1.7 done: verifiable "Is vetguard itself safe?" README section + repo
+  metadata. M1.3 done: `vetguard.config.json` (failOn, offline, and
+  `ignore` suppressions that require a reason and are shown as suppressed, not
+  hidden; CLI flags override config). `main` protection now requires a review
+  and restricts merges to the owner.
+  Next in M1: baseline command, terminal polish, Action PR comment.
 
 ## Stack
 
@@ -83,8 +87,11 @@ or `node dist/cli.js scan [dir]` after build.
 - `CLAUDE.md` - operating rules for AI-assisted work.
 - `docs/` - index (INDEX.md), this cache, decisions, plan, prior-art.
 - `src/core/` - `model.ts` (types), `engine.ts` (runDetectors + verdict),
-  `diff.ts` (`introducedFacts`: head-vs-base set difference), `rules/` (pure
-  detectors + registry index).
+  `diff.ts` (`introducedFacts`: head-vs-base set difference), `ignore.ts`
+  (`applyIgnores`: config suppressions), `rules/` (pure detectors + registry
+  index).
+- `src/config.ts` - loads/validates `vetguard.config.json` (failOn, offline,
+  ignore-with-mandatory-reason).
 - `src/ecosystems/npm/` - `manifest.ts` (package.json reader, source
   classification), `registry.ts` (registry client), `downloads.ts` (downloads
   API client), `enrich.ts` (folds registry + downloads facts into

@@ -5,11 +5,15 @@ export type {
   DependencySource,
   Detector,
   Finding,
+  IgnoreRule,
   PackageFacts,
   Report,
   ScanVerdict,
   Severity,
+  SuppressedFinding,
 } from "./core/model.js";
+export { applyIgnores } from "./core/ignore.js";
+export { loadConfig, ConfigError, CONFIG_FILENAME, type Config } from "./config.js";
 export { SEVERITY_ORDER } from "./core/model.js";
 export { runDetectors } from "./core/engine.js";
 export { builtinDetectors } from "./core/rules/index.js";

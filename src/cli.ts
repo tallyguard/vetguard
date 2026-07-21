@@ -2,7 +2,8 @@
 import { parseArgs } from "node:util";
 import process from "node:process";
 import type { Report, Severity } from "./core/model.js";
-import { scanProject, checkPackage, diffScan } from "./scan.js";
+import { scanProject, checkPackage, diffScan, type ScanOptions } from "./scan.js";
+import { loadConfig, ConfigError } from "./config.js";
 import { renderTerminal } from "./output/terminal.js";
 import { renderJson } from "./output/json.js";
 import { renderSarif } from "./output/sarif.js";
@@ -88,10 +89,8 @@ async function main(argv: string[]): Promise<number> {
   };
 
   if (command === "scan") {
-    return runReport(
-      () => scanProject(positionals[1] ?? process.cwd(), { offline: options.offline }),
-      options,
-    );
+    const dir = positionals[1] ?? process.cwd();
+    return runReport(dir, options, (opts) => scanProject(dir, opts));
   }
   if (command === "check") {
     const spec = positionals[1];
@@ -100,7 +99,7 @@ async function main(argv: string[]): Promise<number> {
       console.error(HELP);
       return 2;
     }
-    return runReport(() => checkPackage(spec, { offline: options.offline }), options);
+    return runReport(process.cwd(), options, (opts) => checkPackage(spec, opts));
   }
   if (command === "diff") {
     if (values.base === undefined) {
@@ -109,10 +108,7 @@ async function main(argv: string[]): Promise<number> {
       return 2;
     }
     const head = values.head ?? "package-lock.json";
-    return runReport(
-      () => diffScan(values.base as string, head, { offline: options.offline }),
-      options,
-    );
+    return runReport(process.cwd(), options, (opts) => diffScan(values.base as string, head, opts));
   }
 
   console.error(`Unknown command: ${command}\n`);
@@ -120,16 +116,43 @@ async function main(argv: string[]): Promise<number> {
   return 2;
 }
 
-async function runReport(produce: () => Promise<Report>, options: RunOptions): Promise<number> {
+/**
+ * Loads config from `configDir`, merges it under the CLI flags (flags win),
+ * then produces and renders the report. A config-file error exits 2 rather
+ * than scanning with a half-understood configuration.
+ */
+async function runReport(
+  configDir: string,
+  cli: RunOptions,
+  produce: (options: ScanOptions) => Promise<Report>,
+): Promise<number> {
+  let config;
+  try {
+    config = await loadConfig(configDir);
+  } catch (err) {
+    if (err instanceof ConfigError) {
+      console.error(err.message);
+      return 2;
+    }
+    throw err;
+  }
+
+  const offline = cli.offline || config?.offline === true;
+  const failOn = cli.failOn ?? config?.failOn;
+  const scanOptions: ScanOptions = {
+    offline,
+    ...(config?.ignore ? { ignore: config.ignore } : {}),
+  };
+
   let report: Report;
   try {
-    report = await produce();
+    report = await produce(scanOptions);
   } catch (err) {
     console.error(err instanceof Error ? err.message : String(err));
     return 2;
   }
-  console.log(render(report, options));
-  return resolveExitCode(report, options.failOn);
+  console.log(render(report, cli));
+  return resolveExitCode(report, failOn);
 }
 
 function render(report: Report, options: RunOptions): string {

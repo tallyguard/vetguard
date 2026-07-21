@@ -69,6 +69,21 @@ export interface Detector {
   detect(pkg: PackageFacts): Finding[];
 }
 
+/**
+ * A configured suppression. A finding matching `rule` and `package` is not
+ * counted toward the verdict, but is still reported as suppressed. The reason
+ * is mandatory: a suppression the team cannot explain is a suppression that
+ * should not exist.
+ */
+export interface IgnoreRule {
+  rule: string;
+  package: string;
+  reason: string;
+}
+
+/** A finding that matched an ignore rule; shown as suppressed, never hidden. */
+export type SuppressedFinding = Finding & { suppressedReason: string };
+
 export type ScanVerdict = "clean" | "findings" | "could-not-verify";
 
 export interface Report {
@@ -77,6 +92,8 @@ export interface Report {
   ecosystem: string;
   packagesScanned: number;
   findings: Finding[];
+  /** Findings suppressed by a configured ignore rule; do not affect the verdict. */
+  suppressed?: SuppressedFinding[];
   /** Packages we could not fully verify (offline, unsupported source, etc.). */
   unverified: string[];
   generatedAt: string;
