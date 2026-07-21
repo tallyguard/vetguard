@@ -3,6 +3,21 @@
 Append-only. One entry per decision that would otherwise be re-litigated.
 Format: date, decision, reason, alternatives rejected.
 
+## 2026-07-21: esbuild pinned via overrides to clear a dev-server advisory
+
+The toolchain (tsup, tsx, and vite via vitest) pulls esbuild. vite@8 requires
+esbuild `^0.27.0`, which lands in the range of GHSA-g7r4-m6w7-qqqr (arbitrary
+file read via the esbuild dev server on Windows; low severity). vetguard never
+runs the esbuild dev server and ships zero runtime dependencies, so the advisory
+cannot affect the published package or its users, but an open alert on a security
+tool is not acceptable. A `package.json` `overrides` forcing `esbuild` to
+`^0.28.0` (the patched line tsx already uses) applies across the tree; the full
+gate stays green and `npm audit` reports zero vulnerabilities. Keep the override
+until vite's esbuild range moves past the advisory. Rejected: `npm audit fix
+--force` (a breaking toolchain major bump for a non-applicable low advisory);
+dismissing the alert as not-used (accurate, but the override is a real fix with
+no downside here).
+
 ## 2026-07-21: Name detectors are offline-capable via a threaded unverified reason
 
 Offline (and in the CI dogfood, which runs `scan . --offline`), the registry is
