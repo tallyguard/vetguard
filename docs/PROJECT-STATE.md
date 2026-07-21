@@ -156,5 +156,6 @@ batch API. Cross-run disk cache is still a follow-up.
 
 - Version is single-sourced from package.json (read at runtime by
   `src/index.ts`); current published release is vetguard@0.2.0.
-- `npm audit` reports vulnerabilities in dev dependencies only (build/test
-  toolchain), not shipped code.
+- `npm audit` is clean. Shipped code has zero runtime dependencies, so a dev
+  dependency advisory (build/test toolchain) never reaches users; esbuild is
+  pinned via `overrides` to stay ahead of GHSA-g7r4-m6w7-qqqr (see DECISIONS).
