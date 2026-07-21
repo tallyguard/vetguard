@@ -2,7 +2,9 @@
 
 Written 2026-07-21. The implementation plan for the MVP and beyond. Read
 [PRIOR-ART.md](PRIOR-ART.md) for the landscape this positioning comes from.
-Update this file as phases complete; it is the resumable plan of record.
+This file stays authoritative for architecture, principles, and the detector
+catalog. For sequencing of the remaining work, [ROADMAP.md](ROADMAP.md)
+(written after the v0.1.0 publish) supersedes the phase list below.
 
 ## Mission
 

@@ -46,11 +46,16 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   npx-based, resolves on npm publish) and `.github/workflows/pr-scan.yml` (scans
   our own PRs from source now, uploads SARIF, writes a job summary). All free:
   runs on GitHub runners, no server.
-  Next: publish to npm (wire VERSION to a single source first); cross-run disk
-  cache; then Phase 2 behavioural/backdoor detectors (capability-signals,
-  obfuscation, agent-injection). hallucination-name covers affix-drop and
-  reorder/scope-drop; cross-package novel-token blends (react-codeshift) remain
-  out of scope.
+  hallucination-name covers affix-drop and reorder/scope-drop; cross-package
+  novel-token blends (react-codeshift) remain out of scope.
+- 2026-07-21: **Published.** Repo moved to github.com/tallyguard/vetguard
+  (protected, verified end to end). Version single-sourced from package.json;
+  lean 126 kB tarball. Release flow is OIDC trusted publishing (no token;
+  Node 24 + npm >= 11.5.1; provenance automatic). One-time bootstrap done by
+  the maintainer, trusted publisher registered, GitHub Release v0.1.0 cut:
+  **vetguard@0.1.0 is live on npm with a verified provenance attestation**
+  (`npx vetguard` works; placeholder 0.0.0 unpublished by the maintainer).
+  Next: follow docs/ROADMAP.md (milestone 1: frictionless adoption).
 
 ## Stack
 
