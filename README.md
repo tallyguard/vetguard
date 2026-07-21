@@ -26,9 +26,8 @@ npx vetguard scan          # scan the current project
 npx vetguard check <pkg>   # vet a package before installing
 ```
 
-Or add it to a project with `npm install --save-dev vetguard`. Requires Node
-
-> = 20.
+Or add it to a project with `npm install --save-dev vetguard`. Requires Node.js
+20 or newer.
 
 ## Usage
 
