@@ -1,0 +1,64 @@
+# Decision log
+
+Append-only. One entry per decision that would otherwise be re-litigated.
+Format: date, decision, reason, alternatives rejected.
+
+## 2026-07-21: Name finalized to "vetguard" (supersedes "vetdep")
+
+Package/CLI name: `vetguard` (vet + guard; available on npm 2026-07-21;
+security-forward, easy to say and spell, echoes the GuardDog lineage without
+copying it). This supersedes the placeholder `vetdep` used during Phase 0
+scaffolding. Rejected finalists (all npm-free): `provenir` (French "to
+originate" = provenance; distinctive but pronunciation not obvious),
+`depproof` (clear but utilitarian), `provenote`. Deliberately-misspelled
+coinages (`veriphy`, `integritee`) were ruled out on principle: a tool that
+fights typosquatting should not itself ship under a lookalike-swap name.
+Repo will be created public (see next entry). The repo directory name
+("npm-package-vulenrability-detector", a typo) is unrelated to the package
+name and left as-is.
+
+## 2026-07-21: Repo will be public
+
+The GitHub repo is public from creation. Reasons: it is an open-source gift;
+the value proposition (no account, no server, auditable) requires the source
+to be readable; a security tool earns trust by being inspectable; public
+unlocks free CI, GitHub code scanning, community rule contributions, and npm
+provenance signing. Rejected: private/stealth start (nothing to hide, no
+secret sauce, and privacy would contradict the pitch).
+
+## 2026-07-21: Name "vetdep" and Apache-2.0 license (SUPERSEDED)
+
+Original placeholder decision. License Apache-2.0 still stands. Name `vetdep`
+was superseded by `vetguard` (see entry above). Kept for history.
+
+## 2026-07-21: Positioning - AI-specific supply-chain threats
+
+The product leads with detecting AI-era attacks (hallucinated/slopsquatted
+dependencies, typosquats, malicious young packages, prompt injection aimed at
+coding agents), with known-CVE lookup included as table stakes. Reason: the
+general scanner market is crowded (Socket, Snyk, GuardDog); the AI-specific
+niche is thinly served and matches the project's motivation (see
+PRIOR-ART.md). Rejected: general-purpose scanner competing head-on with
+Socket/GuardDog; SAST on first-party code as a core bet.
+
+## 2026-07-21: Open source, free, local-first
+
+The tool is a free open-source gift: no account, no server, no telemetry,
+fully local except the registry/advisory lookups a scan needs (and
+`--offline` disables those). Rejected: commercial/SaaS ambitions shaping the
+architecture. License choice still open (Apache-2.0 recommended).
+
+## 2026-07-21: Ecosystem-agnostic core, npm adapter first
+
+The core engine (facts model, rule engine, reporting) is ecosystem-neutral;
+npm is the first adapter, PyPI the planned second. npm first because it is
+the largest AI-hallucination surface. Rejected: npm-only hardcoding
+(re-architecting later costs more); multi-ecosystem at launch (spreads the
+MVP thin).
+
+## 2026-07-21: Docs-as-memory layout
+
+Adopted the CLAUDE.md + INDEX/PROJECT-STATE/DECISIONS structure (modelled on
+the popiadesk repo) so any AI session can recover project context from files
+instead of re-deriving it. Rejected: a single monolithic CLAUDE.md holding
+everything (goes stale and bloats the context loaded every session).
