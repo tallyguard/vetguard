@@ -190,8 +190,11 @@ belongs:
     Y", "changed to Z"). Comments describe the code as it is, not its history.
   - **No useless code.** No dead branches, unreachable arms, unused exports,
     or commented-out code. If it does not run or is never used, delete it.
-- **No em dashes anywhere.** Use periods, commas, or hyphens; convert any you
-  touch.
+- **No em dashes anywhere, in any output.** This covers everything you produce,
+  not just repo files: code, docs, commit messages, PR descriptions, GitHub
+  release titles and notes, issue and PR comments, and chat replies. Use a
+  period, comma, colon, or a plain hyphen. En dashes are out too; use a hyphen.
+  Convert any you touch.
 - **No emojis** in code, commits, or user-facing strings.
 - **No AI-tell patterns.** No unicode arrows, checks, or crosses in code
   comments or output; no box-drawing comment headers (plain `// --- Section
