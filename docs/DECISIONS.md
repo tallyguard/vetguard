@@ -17,6 +17,19 @@ Repo will be created public (see next entry). The repo directory name
 ("npm-package-vulenrability-detector", a typo) is unrelated to the package
 name and left as-is.
 
+## 2026-07-21: Only the owner merges; others require review
+
+`main` branch protection tightened so contributions from anyone other than the
+owner are gated: a pull request now requires one approving review, and pushing
+to `main` (which includes merging a PR) is restricted to the owner account.
+CI-must-pass, linear history, and no force-push/deletion stay. `enforce_admins`
+remains false: a solo owner cannot approve their own PR, so the owner keeps an
+admin bypass to merge, while every non-owner is forced through review and
+cannot merge. Net effect: external and future-collaborator PRs need the owner's
+review and can only be landed by the owner; the owner (and the owner's
+delegated automation) can still merge. Rejected: `enforce_admins` true (would
+deadlock a solo maintainer, no one can approve the owner's own PRs).
+
 ## 2026-07-21: Publish via npm trusted publishing (OIDC), not a token
 
 The release workflow publishes with npm trusted publishing (OIDC): no
