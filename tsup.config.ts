@@ -10,5 +10,4 @@ export default defineConfig({
   platform: "node",
   dts: true,
   clean: true,
-  sourcemap: true,
 });

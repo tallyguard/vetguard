@@ -45,4 +45,12 @@ export {
 export { parsePackageSpec, type PackageSpec } from "./ecosystems/npm/spec.js";
 export { scanProject, checkPackage, type ScanOptions } from "./scan.js";
 
-export const VERSION = "0.0.0";
+import { readFileSync } from "node:fs";
+
+// Single source of truth: read the version from package.json, which ships at the
+// tarball root next to dist/, so the CLI and reports never drift from the manifest.
+const pkg = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as {
+  version: string;
+};
+
+export const VERSION = pkg.version;

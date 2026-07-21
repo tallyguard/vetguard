@@ -109,7 +109,7 @@ batch API. Cross-run disk cache is still a follow-up.
 
 ## Known caveats
 
-- `VERSION` is hardcoded as "0.0.0" in `src/index.ts` and mirrored in
-  package.json; wire it to a single source before the first publish.
+- Version is single-sourced from package.json (read at runtime by
+  `src/index.ts`); currently 0.1.0, not yet published to npm.
 - `npm audit` reports vulnerabilities in dev dependencies only (build/test
   toolchain), not shipped code. Revisit before publish.

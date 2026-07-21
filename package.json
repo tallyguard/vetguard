@@ -1,6 +1,6 @@
 {
   "name": "vetguard",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Local-first scanner for AI-era npm supply-chain threats: hallucinated (slopsquatted) dependencies, typosquats, malicious young packages, and prompt injection aimed at coding agents.",
   "keywords": [
     "npm",
@@ -13,6 +13,14 @@
     "cli"
   ],
   "license": "Apache-2.0",
+  "homepage": "https://github.com/Poolchaos/vetguard#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Poolchaos/vetguard.git"
+  },
+  "bugs": {
+    "url": "https://github.com/Poolchaos/vetguard/issues"
+  },
   "type": "module",
   "engines": {
     "node": ">=20"
@@ -28,10 +36,13 @@
   },
   "files": [
     "dist",
-    "data",
     "LICENSE",
     "README.md"
   ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
   "scripts": {
     "dev": "tsx src/cli.ts",
     "build": "tsup",
@@ -43,7 +54,8 @@
     "test:watch": "vitest",
     "scan": "tsx src/cli.ts scan",
     "check": "npm run build && node dist/cli.js",
-    "refresh:popular": "node scripts/refresh-popular.mjs"
+    "refresh:popular": "node scripts/refresh-popular.mjs",
+    "prepack": "npm run build"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
