@@ -1,9 +1,11 @@
 #!/usr/bin/env node
 import { parseArgs } from "node:util";
 import process from "node:process";
-import type { Report } from "./core/model.js";
+import type { Report, Severity } from "./core/model.js";
 import { scanProject, checkPackage } from "./scan.js";
 import { renderTerminal } from "./output/terminal.js";
+import { renderJson } from "./output/json.js";
+import { resolveExitCode } from "./output/exit-code.js";
 import { VERSION } from "./index.js";
 
 const HELP = `vetguard ${VERSION} - scan npm dependencies for AI-era supply-chain threats
@@ -18,9 +20,21 @@ Usage:
 Options:
   --offline                  Do not contact the registry; unverifiable facts
                              are reported as "could not verify", never "safe".
+  --json                     Print the report as JSON instead of text.
+  --fail-on <severity>       Exit non-zero only when a finding at or above this
+                             severity exists (critical|high|medium|low|info).
+                             Default: any finding exits non-zero.
 
 vetguard never executes the code it scans. When it cannot verify something it
 says so rather than calling it safe.`;
+
+const SEVERITIES: Severity[] = ["critical", "high", "medium", "low", "info"];
+
+interface RunOptions {
+  offline: boolean;
+  json: boolean;
+  failOn: Severity | undefined;
+}
 
 async function main(argv: string[]): Promise<number> {
   const { values, positionals } = parseArgs({
@@ -30,6 +44,8 @@ async function main(argv: string[]): Promise<number> {
       help: { type: "boolean", short: "h" },
       version: { type: "boolean", short: "v" },
       offline: { type: "boolean" },
+      json: { type: "boolean" },
+      "fail-on": { type: "string" },
     },
   });
 
@@ -44,10 +60,20 @@ async function main(argv: string[]): Promise<number> {
     return 0;
   }
 
-  const offline = values.offline === true;
+  const failOnRaw = values["fail-on"];
+  if (failOnRaw !== undefined && !SEVERITIES.includes(failOnRaw as Severity)) {
+    console.error(`Invalid --fail-on value: ${failOnRaw} (expected ${SEVERITIES.join(", ")})`);
+    return 2;
+  }
+
+  const options: RunOptions = {
+    offline: values.offline === true,
+    json: values.json === true,
+    failOn: failOnRaw as Severity | undefined,
+  };
 
   if (command === "scan") {
-    return runScan(positionals[1] ?? process.cwd(), offline);
+    return runScan(positionals[1] ?? process.cwd(), options);
   }
   if (command === "check") {
     const spec = positionals[1];
@@ -56,7 +82,7 @@ async function main(argv: string[]): Promise<number> {
       console.error(HELP);
       return 2;
     }
-    return runCheck(spec, offline);
+    return runCheck(spec, options);
   }
 
   console.error(`Unknown command: ${command}\n`);
@@ -64,26 +90,25 @@ async function main(argv: string[]): Promise<number> {
   return 2;
 }
 
-async function runScan(dir: string, offline: boolean): Promise<number> {
+async function runScan(dir: string, options: RunOptions): Promise<number> {
   let report: Report;
   try {
-    report = await scanProject(dir, { offline });
+    report = await scanProject(dir, { offline: options.offline });
   } catch (err) {
     console.error(err instanceof Error ? err.message : String(err));
     return 2;
   }
-  console.log(renderTerminal(report));
-  return exitCodeFor(report);
+  return emit(report, options);
 }
 
-async function runCheck(specInput: string, offline: boolean): Promise<number> {
-  const report = await checkPackage(specInput, { offline });
-  console.log(renderTerminal(report));
-  return exitCodeFor(report);
+async function runCheck(specInput: string, options: RunOptions): Promise<number> {
+  const report = await checkPackage(specInput, { offline: options.offline });
+  return emit(report, options);
 }
 
-function exitCodeFor(report: Report): number {
-  return report.verdict === "findings" ? 1 : 0;
+function emit(report: Report, options: RunOptions): number {
+  console.log(options.json ? renderJson(report, VERSION) : renderTerminal(report));
+  return resolveExitCode(report, options.failOn);
 }
 
 main(process.argv.slice(2))

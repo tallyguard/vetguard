@@ -37,6 +37,9 @@ vetguard --help         Show help
 vetguard --version      Show version
 
   --offline             Do not contact the registry
+  --json                Print the report as JSON (for CI and tooling)
+  --fail-on <severity>  Exit non-zero only at or above this severity
+                        (critical|high|medium|low|info); default: any finding
 ```
 
 `scan` reads the resolved dependency tree from `package-lock.json` (v2 or v3),
