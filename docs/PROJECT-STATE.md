@@ -26,7 +26,9 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   `versionCount` facts, and the `young-package` detector landed (PR #3).
   Detectors live: `nonexistent-package`, `young-package`, `install-scripts`
   (install lifecycle scripts correlated with risk facts; established popular
-  packages like esbuild are suppressed, verified live). Verified: live
+  packages like esbuild are suppressed, verified live), `unpublished-version`
+  (pinned version absent from registry; verified live via express@99.99.99).
+  Verified: live
   self-scan and established packages (express, left-pad, @ui5/cli) stay clean
   (no false positives); young-package firing logic covered by unit tests
   including the age boundary. Note: `react-codeshift` now EXISTS on the

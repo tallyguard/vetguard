@@ -57,6 +57,9 @@ is always traceable to why. Live today:
   `postinstall` script (the classic backdoor execution vector) and is not
   widely established. Popular packages that legitimately build native code are
   not flagged; a fresh or obscure package running install code is.
+- **unpublished-version**: the package exists but the exact pinned version is
+  not on the registry. Versions vanish when npm removes malware, so a pin the
+  registry no longer serves is a strong tamper signal.
 
 ### On backdoors
 
