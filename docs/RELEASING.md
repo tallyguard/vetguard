@@ -5,68 +5,34 @@ to npm directly for one publish, so there is no long-lived token to store,
 rotate, or leak, and provenance is generated automatically. The release
 workflow is `.github/workflows/release.yml`.
 
-One catch: npm cannot configure trusted publishing for a package that does not
-exist yet (npm/cli#8544). So the very first publish is a one-time bootstrap;
-every release after that is tokenless OIDC.
+The one-time setup (bootstrap publish and trusted-publisher registration) is
+already done; see "One-time setup (completed)" at the bottom for the record.
+Day to day, releasing is just the three steps below.
 
-## Requirements (already met)
-
-- Public repo (`github.com/tallyguard/vetguard`) so provenance can be attested.
-- The release job grants `id-token: write` and runs on a GitHub-hosted runner
-  with Node 24 (npm >= 11.5.1, the OIDC floor) plus an explicit
-  `npm install -g npm@latest`.
-
-## Step 1: bootstrap the package (one time only)
-
-Publish a placeholder version from your machine to create the name on npm. This
-needs no CI token, just an interactive login.
-
-```
-npm login          # web/2FA login
-npm version 0.0.0 --no-git-tag-version   # temporary placeholder, do not commit
-npm publish        # creates the vetguard package on npm
-git checkout package.json                # restore the real version (0.1.0)
-```
-
-The placeholder has no provenance (local publishes cannot attest); we deprecate
-it after the first real release. If you would rather skip the placeholder,
-publish the real `0.1.0` here instead, but then do not also cut a `v0.1.0`
-GitHub Release (it is already on npm), and `0.1.0` will lack provenance.
-
-## Step 2: register the trusted publisher (one time only)
-
-Do this in the npmjs.com web UI under a real 2FA session (from early August 2026
-a token cannot change this configuration).
-
-Go to `https://www.npmjs.com/package/vetguard/access` -> Trusted publishing ->
-GitHub Actions, and enter exactly:
-
-| Field                | Value                                    |
-| -------------------- | ---------------------------------------- |
-| Organization or user | `tallyguard` (exact case; it is an org)  |
-| Repository           | `vetguard` (repo name only, no owner)    |
-| Workflow filename    | `release.yml` (filename only, with .yml) |
-| Environment name     | leave blank                              |
-| Allowed actions      | npm publish                              |
-
-These must match the workflow exactly; a wrong case or a stray space is a real
-cause of rejection. Only one trusted publisher is allowed per package.
-
-## Step 3: cut releases (every version, tokenless)
+## Cutting a release
 
 1. Bump `version` in `package.json` on a branch, open a PR, merge it green. The
    CLI reads its version from `package.json`, so it is the single source of
    truth.
-2. Create a GitHub Release whose tag is `v<version>` (e.g. `v0.1.0`, matching
+2. Create a GitHub Release whose tag is `v<version>` (e.g. `v0.2.0`, matching
    `package.json` exactly; the workflow fails the publish if they differ).
 3. The release workflow verifies the tag, runs the gate, builds, and publishes
    via OIDC with provenance. No token, no `--provenance` flag.
 
-After the first successful OIDC release, deprecate the placeholder:
+That is the whole process. The workflow needs nothing you have to supply per
+release.
 
-```
-npm deprecate vetguard@0.0.0 "placeholder for the first publish; use >=0.1.0"
-```
+## Version and Action-tag policy
+
+- Pre-1.0, releases are exact tags (`v0.1.0`, `v0.2.0`, ...) and the GitHub
+  Action must be pinned to an exact tag (`uses: tallyguard/vetguard@v0.1.0`),
+  because 0.x minor versions may change behaviour.
+- At the 1.0 release, start maintaining a moving `v1` major tag that points at
+  the latest 1.x release, so Action users can pin `@v1`. Update the README
+  example then.
+- New detectors ship in minor versions. Any change to a rule id, the JSON
+  `schemaVersion`, the SARIF shape, or a finding's default severity is called
+  out in the release notes.
 
 ## Troubleshooting
 
@@ -83,3 +49,22 @@ Only `dist/` (the bundled CLI, library, types, and popular-package corpus),
 ```
 npm run build && npm pack --dry-run
 ```
+
+## One-time setup (completed)
+
+Recorded for reference; you do not repeat these.
+
+- **Bootstrap** (done): npm cannot configure trusted publishing for a package
+  that does not exist yet (npm/cli#8544), so the name was created with a local
+  `npm publish` of a `0.0.0` placeholder, which was unpublished after `0.1.0`
+  shipped.
+- **Trusted publisher** (done): registered at
+  `https://www.npmjs.com/package/vetguard/access` -> Trusted publishing ->
+  GitHub Actions, with organization `tallyguard`, repository `vetguard`,
+  workflow filename `release.yml`, no environment, allowed action `npm publish`.
+  These must match the workflow exactly; only one trusted publisher is allowed
+  per package. Editing it requires a real 2FA web session.
+- **Workflow requirements** (in `release.yml`): a public repo (so provenance can
+  attest), `id-token: write`, a GitHub-hosted runner, Node 24 with
+  `npm install -g npm@latest` (OIDC needs npm >= 11.5.1; Node 22 ships 10.9.x),
+  no `NODE_AUTH_TOKEN`, and no `--provenance` flag (automatic under OIDC).

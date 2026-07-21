@@ -5,10 +5,9 @@ AI-assisted development created: hallucinated (slopsquatted) dependencies,
 typosquats, and freshly registered malicious packages. No account, no server,
 no telemetry.
 
-> Early development. `scan` and `check` work today with two detectors live
-> (`nonexistent-package`, `young-package`); more detectors, lockfile
-> resolution, and a GitHub Action are landing next. Roadmap:
-> [docs/PLAN.md](docs/PLAN.md).
+> `vetguard@0.1.0` is on npm, published with provenance. Six detectors,
+> full-tree `package-lock` scanning, a GitHub Action, and text/JSON/SARIF
+> output. Roadmap to v1.0: [docs/ROADMAP.md](docs/ROADMAP.md).
 
 ## Why
 
@@ -20,12 +19,16 @@ CVE-first tools cannot see it. vetguard targets that gap.
 
 ## Install
 
-Not yet published to npm. For now, run from source (see Development). Once
-released:
+Published on npm. Run it without installing:
 
 ```
-npx vetguard scan
+npx vetguard scan          # scan the current project
+npx vetguard check <pkg>   # vet a package before installing
 ```
+
+Or add it to a project with `npm install --save-dev vetguard`. Requires Node
+
+> = 20.
 
 ## Usage
 
@@ -73,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: tallyguard/vetguard@v1
+      - uses: tallyguard/vetguard@v0.1.0
         with:
           fail-on: high # fail the check only on high/critical findings
       - if: always()
@@ -82,8 +85,9 @@ jobs:
           sarif_file: vetguard.sarif
 ```
 
-> The reusable action above resolves once vetguard is published to npm. This
-> repository already scans its own pull requests from source via
+> Pin the action to an exact release (`@v0.1.0`) while vetguard is pre-1.0, since
+> 0.x minor versions may change behaviour; a moving `@v1` tag will follow the
+> 1.0 release. This repository also scans its own pull requests from source via
 > [.github/workflows/pr-scan.yml](.github/workflows/pr-scan.yml).
 
 ## What it checks
