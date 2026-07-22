@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { enrichWithRegistry } from "../../src/ecosystems/npm/enrich.js";
 import type { PackageFacts } from "../../src/core/model.js";
 import type { RegistryClient, RegistryLookup } from "../../src/ecosystems/npm/registry.js";
+import type { OsvClient } from "../../src/ecosystems/npm/osv.js";
 
 function fact(overrides: Partial<PackageFacts>): PackageFacts {
   return { name: "x", kind: "prod", source: "registry", ...overrides };
@@ -129,5 +130,107 @@ describe("enrichWithRegistry", () => {
     const downloads = { getWeeklyDownloads: async () => 42 };
     const { facts } = await enrichWithRegistry([fact({ name: "p" })], client, { downloads });
     expect(facts[0]?.weeklyDownloads).toBe(42);
+  });
+
+  const foundGood = () =>
+    clientReturning({
+      good: {
+        status: "found",
+        packument: { name: "good", versionCount: 1, hasInstallScript: false },
+      },
+    });
+
+  it("folds OSV advisories onto a resolved version", async () => {
+    const osv: OsvClient = {
+      queryVersions: async (qs) =>
+        qs.map(() => ({
+          status: "checked",
+          advisories: [{ id: "GHSA-a", severity: "high", severitySource: "label", url: "u" }],
+        })),
+    };
+    const { facts } = await enrichWithRegistry(
+      [fact({ name: "good", version: "1.0.0" })],
+      foundGood(),
+      {
+        osv,
+      },
+    );
+    expect(facts[0]?.knownVulnerabilities).toHaveLength(1);
+  });
+
+  it("records checked-clean as an empty list and does not mark the name unverified", async () => {
+    const osv: OsvClient = {
+      queryVersions: async (qs) => qs.map(() => ({ status: "checked", advisories: [] })),
+    };
+    const { facts, unverified } = await enrichWithRegistry(
+      [fact({ name: "good", version: "1.0.0" })],
+      foundGood(),
+      { osv },
+    );
+    expect(facts[0]?.knownVulnerabilities).toEqual([]);
+    expect(unverified).not.toContain("good");
+  });
+
+  it("marks advisories unverified without asserting clean when OSV is offline", async () => {
+    const osv: OsvClient = {
+      queryVersions: async (qs) => qs.map(() => ({ status: "unverified", reason: "offline" })),
+    };
+    const { facts, unverified } = await enrichWithRegistry(
+      [fact({ name: "good", version: "1.0.0" })],
+      foundGood(),
+      { osv },
+    );
+    expect(facts[0]?.knownVulnerabilities).toBeUndefined();
+    expect(facts[0]?.advisoriesUnverifiedReason).toBe("offline");
+    expect(unverified).toContain("good");
+  });
+
+  it("only queries OSV for registry-source facts with a concrete version", async () => {
+    const seen: string[] = [];
+    const osv: OsvClient = {
+      queryVersions: async (qs) => {
+        seen.push(...qs.map((q) => q.name));
+        return qs.map(() => ({ status: "checked", advisories: [] }));
+      },
+    };
+    await enrichWithRegistry(
+      [
+        fact({ name: "good", version: "1.0.0" }),
+        fact({ name: "gitdep", source: "git", version: "1.0.0" }),
+        fact({ name: "noversion" }),
+      ],
+      foundGood(),
+      { osv },
+    );
+    expect(seen).toEqual(["good"]);
+  });
+
+  it("marks an existing package with no exact version as advisory-unverified", async () => {
+    const osv: OsvClient = {
+      queryVersions: async (qs) => qs.map(() => ({ status: "checked", advisories: [] })),
+    };
+    const { facts, unverified } = await enrichWithRegistry([fact({ name: "good" })], foundGood(), {
+      osv,
+    });
+    expect(facts[0]?.knownVulnerabilities).toBeUndefined();
+    expect(facts[0]?.advisoriesUnverifiedReason).toBe("error");
+    expect(unverified).toContain("good");
+  });
+
+  it("does not query OSV for a range version and marks it unverified", async () => {
+    const seen: string[] = [];
+    const osv: OsvClient = {
+      queryVersions: async (qs) => {
+        seen.push(...qs.map((q) => q.name));
+        return qs.map(() => ({ status: "checked", advisories: [] }));
+      },
+    };
+    const { unverified } = await enrichWithRegistry(
+      [fact({ name: "good", version: "^1.0.0" })],
+      foundGood(),
+      { osv },
+    );
+    expect(seen).toEqual([]);
+    expect(unverified).toContain("good");
   });
 });

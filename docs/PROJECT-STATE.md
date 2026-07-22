@@ -87,8 +87,15 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   the actions bot, and the repo hardened (squash-only, delete-branch-on-merge,
   secret scanning + push protection, Dependabot; vitest bumped to 4 after a
   full-gate check). **vetguard@0.2.0 is live on npm with a verified provenance
-  attestation.** Next: Milestone 2 (complete/correct verdicts: OSV known-cve,
-  accuracy evaluation gate).
+  attestation.**
+- 2026-07-21: **Milestone 2 started. M2.1 known-cve (DONE).** The `known-cve`
+  detector checks each exact resolved `name@version` against OSV.dev (batched,
+  in-run cached, `--offline`-gated) and degrades to could-not-verify on any
+  lookup failure or a version-less scan; severity is the higher of the GHSA label
+  and a hand-rolled CVSS v3 base score, clamped to at least low and floored to
+  medium. Verified live: `check lodash@4.17.4` flags GHSA-jf85-cpcp-j695
+  (critical) and others, a current exact version is clean, offline is
+  could-not-verify. Next: M2.2 accuracy evaluation harness.
 
 ## Stack
 
@@ -119,8 +126,9 @@ or `node dist/cli.js scan [dir]` after build.
   API client), `enrich.ts` (folds registry + downloads facts into
   PackageFacts, computes ageDays), `spec.ts` (`check` argument parser),
   `popular.ts` (corpus indexes + near-miss lookup), `lockfile.ts` (package-lock
-  v2/v3 resolver), `data/popular-packages.ts` (generated npm-high-impact
-  snapshot). Tarball collector lands next.
+  v2/v3 resolver), `osv.ts` (OSV advisory client), `cvss.ts` (severity resolver),
+  `data/popular-packages.ts` (generated npm-high-impact snapshot). Tarball
+  collector lands next.
 - `src/scan.ts` - `scanProject` / `checkPackage` / `diffScan` orchestration
   (used by the CLI and tests; keeps the CLI thin).
 - `src/util/` - `concurrency.ts` (bounded parallel map), `names.ts` (pure
@@ -142,9 +150,10 @@ refresh:popular`).
 ## External services and data sources
 
 Wired: npm registry API (`registry.ts`), npm downloads API (`downloads.ts`),
-both optional at runtime (`--offline`) with in-run memoization. Bundled data:
-npm-high-impact corpus (dev-refreshed, not a runtime call). Planned: OSV.dev
-batch API. Cross-run disk cache is still a follow-up.
+OSV.dev advisory API (`osv.ts`, batched + in-run cached), all optional at runtime
+(`--offline`) and degrading to could-not-verify on failure. Bundled data:
+npm-high-impact corpus (dev-refreshed, not a runtime call). Cross-run disk cache
+is still a follow-up.
 
 ## Open questions (blocking, per gating rules)
 

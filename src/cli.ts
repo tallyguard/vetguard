@@ -29,8 +29,9 @@ Usage:
   vetguard --version         Show version
 
 Options:
-  --offline                  Do not contact the registry; unverifiable facts
-                             are reported as "could not verify", never "safe".
+  --offline                  Do not contact the registry or OSV advisory API;
+                             unverifiable facts are reported as "could not
+                             verify", never "safe".
   --json                     Print the report as JSON.
   --sarif                    Print SARIF 2.1.0 for GitHub code scanning.
   --markdown                 Print compact markdown for a PR comment or summary.

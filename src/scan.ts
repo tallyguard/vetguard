@@ -7,6 +7,7 @@ import { readLockfile, readLockfileFile, detectOtherLockfiles } from "./ecosyste
 import { enrichWithRegistry, type EnrichOptions } from "./ecosystems/npm/enrich.js";
 import { createRegistryClient, type RegistryClient } from "./ecosystems/npm/registry.js";
 import { createDownloadsClient, type DownloadsClient } from "./ecosystems/npm/downloads.js";
+import { createOsvClient, type OsvClient } from "./ecosystems/npm/osv.js";
 import { parsePackageSpec } from "./ecosystems/npm/spec.js";
 
 export interface ScanOptions {
@@ -14,6 +15,8 @@ export interface ScanOptions {
   /** Injected in tests so the suite never touches the network. */
   client?: RegistryClient;
   downloads?: DownloadsClient;
+  /** Injected in tests; when absent a live OSV client is created (disabled by offline). */
+  osv?: OsvClient;
   detectors?: Detector[];
   /** Suppressions from config; matched findings are reported but do not affect the verdict. */
   ignore?: readonly IgnoreRule[];
@@ -31,6 +34,10 @@ function downloadsFor(options: ScanOptions): DownloadsClient {
   return options.downloads ?? createDownloadsClient({ offline: options.offline ?? false });
 }
 
+function osvFor(options: ScanOptions): OsvClient {
+  return options.osv ?? createOsvClient({ offline: options.offline ?? false });
+}
+
 function timestamp(options: ScanOptions): string {
   return (options.now ? options.now() : new Date()).toISOString();
 }
@@ -38,6 +45,7 @@ function timestamp(options: ScanOptions): string {
 function enrichOptions(options: ScanOptions): EnrichOptions {
   return {
     downloads: downloadsFor(options),
+    osv: osvFor(options),
     ...(options.now === undefined ? {} : { now: options.now }),
   };
 }

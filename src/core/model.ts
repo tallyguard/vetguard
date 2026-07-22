@@ -49,8 +49,36 @@ export interface PackageFacts {
   repositoryUrl?: string;
   integrity?: string;
   resolvedUrl?: string;
+  /**
+   * Known-vulnerability advisories affecting this exact version, from OSV. An
+   * empty array means checked and clean; `undefined` means not checked (offline,
+   * error, or no resolved version) and must never be read as clean.
+   */
+  knownVulnerabilities?: Advisory[];
+  /**
+   * When advisory lookup could not be completed, why: the OSV API was not
+   * consulted (`offline`) or the lookup failed (`error`). Parallels
+   * `existenceUnverifiedReason` so the verdict can degrade honestly.
+   */
+  advisoriesUnverifiedReason?: "offline" | "error";
   /** Where this fact set came from, for traceable verdicts. */
   evidencePath?: string;
+}
+
+/** A known-vulnerability advisory affecting a specific package version. */
+export interface Advisory {
+  /** Primary advisory id (OSV/GHSA). */
+  id: string;
+  /** Cross-references such as CVE ids. */
+  aliases?: string[];
+  /** Severity mapped to vetguard's scale. */
+  severity: Severity;
+  /** How severity was derived, so a verdict stays traceable. */
+  severitySource: "label" | "cvss-v3" | "floor";
+  /** One-line advisory summary; truncated and control-stripped by the collector. */
+  summary?: string;
+  /** Advisory URL; a deterministic OSV page when references are unavailable. */
+  url: string;
 }
 
 /** A single detector result. Evidence is always quoted, never live content. */
