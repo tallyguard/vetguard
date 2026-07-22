@@ -48,6 +48,12 @@ export interface Recombination {
   kind: RecombinationKind;
 }
 
+/** A popular scoped package that an unscoped name resembles (a dropped-scope lookalike). */
+export interface ScopedLookalike {
+  target: string;
+  rank: number;
+}
+
 export interface PopularCorpus {
   /** Raw membership, the self-suppression check: a corpus name is never a squat. */
   has(name: string): boolean;
@@ -56,6 +62,8 @@ export interface PopularCorpus {
   findNearMiss(name: string): NearMiss | undefined;
   /** A popular package whose tokens this non-member name reorders or drops a convention affix from. */
   findRecombination(name: string): Recombination | undefined;
+  /** A popular scoped package this unscoped, non-member name is a dropped-scope lookalike of. */
+  findScopedLookalike(name: string): ScopedLookalike | undefined;
   readonly size: number;
 }
 
@@ -68,6 +76,7 @@ export function buildCorpus(names: readonly string[]): PopularCorpus {
   const rank = new Map<string, number>();
   const depunctToBest = new Map<string, { name: string; rank: number }>();
   const tokenKeyToBest = new Map<string, { name: string; rank: number }>();
+  const scopedLookalikeToBest = new Map<string, { name: string; rank: number }>();
 
   names.forEach((raw, index) => {
     const name = raw.toLowerCase();
@@ -85,6 +94,22 @@ export function buildCorpus(names: readonly string[]): PopularCorpus {
       const tokenExisting = tokenKeyToBest.get(tokenKey);
       if (!tokenExisting || index < tokenExisting.rank) {
         tokenKeyToBest.set(tokenKey, { name, rank: index });
+      }
+    }
+
+    // Dropped-scope lookalike key: @babel/core -> "babelcore", so an unscoped
+    // "babel-core" resolves to it. @types is allowlisted (DefinitelyTyped is
+    // ownership-gated and its unscoped forms are not a realistic attack vector).
+    if (name.startsWith("@")) {
+      const slash = name.indexOf("/");
+      const scope = slash > 1 ? name.slice(1, slash) : "";
+      const pkg = slash > 1 ? name.slice(slash + 1) : "";
+      if (scope && pkg && scope !== "types") {
+        const key = depunctuate(`${scope}${pkg}`);
+        const existing = scopedLookalikeToBest.get(key);
+        if (!existing || index < existing.rank) {
+          scopedLookalikeToBest.set(key, { name, rank: index });
+        }
       }
     }
   });
@@ -144,7 +169,25 @@ export function buildCorpus(names: readonly string[]): PopularCorpus {
     return undefined;
   }
 
-  return { has, rankOf, findNearMiss, findRecombination, size: rank.size };
+  function findScopedLookalike(input: string): ScopedLookalike | undefined {
+    const name = input.toLowerCase();
+    if (name.startsWith("@")) return undefined; // suspects are unscoped
+    if (rank.has(name)) return undefined; // a corpus member is not a squat
+    const hit = scopedLookalikeToBest.get(depunctuate(name));
+    if (hit && hit.name !== name && hit.rank <= TARGET_RANK) {
+      return { target: hit.name, rank: hit.rank };
+    }
+    return undefined;
+  }
+
+  return {
+    has,
+    rankOf,
+    findNearMiss,
+    findRecombination,
+    findScopedLookalike,
+    size: rank.size,
+  };
 }
 
 export const defaultCorpus: PopularCorpus = buildCorpus(POPULAR_NAMES);

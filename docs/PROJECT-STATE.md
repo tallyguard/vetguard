@@ -101,8 +101,15 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   popular packages (must be zero findings) and a labeled positive corpus (each
   must flag with the expected rule), exiting non-zero on any regression. It gates
   CI, runs weekly (`evaluate.yml`), and gates the release. Proven: 0 false
-  positives, 6/6 positives flagged; a planted miss fails it. Next: M2.3 corpus
-  refresh automation, or M2.4 scoped-name coverage.
+  positives, 6/6 positives flagged; a planted miss fails it.
+- 2026-07-22: **M2.4 scoped-name coverage (DONE).** New `scoped-lookalike`
+  detector: an unscoped name that is a dropped-scope lookalike of a popular
+  scoped package (`babel-core` for `@babel/core`) flags, risk-gated like
+  typosquat and offline-capable; the scoped package itself, corpus members
+  (real legacy unscoped forms), and the `@types` scope are never suspects.
+  Verified live: `jridgewell-trace-mapping` flags scoped-lookalike, `types-node`
+  and `@babel/core` stay clean of it. Next: M2.3 corpus refresh automation, or
+  M2.5 repo-mismatch detector.
 
 ## Stack
 

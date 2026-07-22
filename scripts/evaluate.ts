@@ -36,6 +36,11 @@ const POSITIVES: { name: string; rule: string; note: string }[] = [
     note: "affix-drop of eslint-plugin-unused-imports",
   },
   { name: "dom-react-router", rule: "hallucination-name", note: "reorder of react-router-dom" },
+  {
+    name: "jridgewell-trace-mapping",
+    rule: "scoped-lookalike",
+    note: "dropped scope of @jridgewell/trace-mapping",
+  },
 ];
 
 function offlineFact(name: string): PackageFacts {

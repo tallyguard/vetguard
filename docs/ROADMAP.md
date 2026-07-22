@@ -121,7 +121,7 @@ dependencies) and its accuracy is measured, not asserted.
   (never direct-push). Corpus staleness is a documented FP risk; this manages
   it. Done when a scheduled run produces a mergeable PR with only data
   changes.
-- **2.4 Scoped-name coverage.** Close the "scoped names skipped" gap using
+- **2.4 Scoped-name coverage (DONE).** Close the "scoped names skipped" gap using
   the research already in docs/PRIOR-ART.md: flag the risky direction only,
   an unscoped or wrong-scope lookalike of a popular scoped package (bare
   `babel-core` against `@babel/core`), allowlist `@types/*` and known mirror

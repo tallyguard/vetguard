@@ -199,6 +199,10 @@ is always traceable to why. Live today:
   the slopsquat pattern where an AI reorders tokens or drops a convention prefix
   (`unused-imports` for `eslint-plugin-unused-imports`). Same risk gating as
   typosquat, so established packages that merely share tokens are not flagged.
+- **scoped-lookalike**: an unscoped name that resembles a popular scoped package
+  (bare `babel-core` for `@babel/core`), the dropped-scope typo attackers
+  register. Same risk gating as typosquat, so a real established unscoped package
+  is left alone; `@types` is allowlisted.
 - **known-cve**: the resolved version has a known advisory (CVE/GHSA) in the
   OSV.dev database. vetguard checks each exact `name@version` against OSV,
   batched and cached, and maps severity from the advisory. `--offline` disables
