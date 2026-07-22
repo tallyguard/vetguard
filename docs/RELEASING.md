@@ -11,9 +11,12 @@ Day to day, releasing is just the three steps below.
 
 ## Cutting a release
 
-1. Bump `version` in `package.json` on a branch, open a PR, merge it green. The
-   CLI reads its version from `package.json`, so it is the single source of
-   truth.
+1. On a branch, bump `version` in `package.json` and the `version` input
+   default in `action.yml` to the same number, then update the README pins and
+   `npx` examples to `@vX.Y.Z`. Open a PR, merge it green. The CLI reads its
+   version from `package.json` (the single source of truth for the CLI); the
+   `action.yml` default must be bumped in lockstep so the tag `vX.Y.Z` carries
+   an action that runs `vetguard@X.Y.Z` by default rather than `latest`.
 2. Create a GitHub Release whose tag is `v<version>` (e.g. `v0.2.0`, matching
    `package.json` exactly; the workflow fails the publish if they differ).
 3. The release workflow verifies the tag, runs the gate, builds, and publishes
