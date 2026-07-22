@@ -71,8 +71,11 @@ Recorded for reference; you do not repeat these.
 
 - **Bootstrap** (done): npm cannot configure trusted publishing for a package
   that does not exist yet (npm/cli#8544), so the name was created with a local
-  `npm publish` of a `0.0.0` placeholder, which was unpublished after `0.1.0`
-  shipped.
+  `npm publish` of a `0.0.0` placeholder. That version was left on the registry
+  and deprecated (`npm deprecate vetguard@0.0.0`, message points to `>=0.1.0`),
+  not unpublished: npm discourages unpublishing and gates it to a 72-hour
+  window, so deprecation is the standard way to retire a bootstrap placeholder.
+  Nothing further is needed here.
 - **Trusted publisher** (done): registered at
   `https://www.npmjs.com/package/vetguard/access` -> Trusted publishing ->
   GitHub Actions, with organization `tallyguard`, repository `vetguard`,
