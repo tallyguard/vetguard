@@ -43,6 +43,17 @@ gate green).
 
 ### F1. Hostile package.json / package-lock.json crashes the scan (HIGH, stop-the-line)
 
+**Status: FIXED (2026-07-22).** `manifest.ts` and `lockfile.ts` now guard the
+parsed document and every field: a non-object manifest or a malformed
+dependencies block fails with a clear message (not a crash or a silent clean); a
+non-string version becomes an unverifiable fact (could-not-verify); a null
+document, packages-as-array, null lockfile entry, and non-string version/resolved
+are handled without a TypeError. All repro cases verified degrading, and tests
+were added for each shape (see F8). Deviation from the plan's "always
+could-not-verify": a wholly-unreadable/malformed manifest fails with exit 2 (the
+documented read-error code that fails loud in CI), while partial malformation
+degrades to could-not-verify.
+
 CLAUDE.md treats scanned packages as hostile input and hostile-input failures
 as stop-the-line. Four crash cases were reproduced against the built CLI
 (`node dist/cli.js scan <dir> --offline`), each exiting 2 with an uncaught
@@ -207,6 +218,12 @@ byte cap before parsing network bodies. Add tests with an oversize fixture
 generated at test time (do not commit a large file).
 
 ### F8. Missing hostile-input and unicode tests (LOW, follows F1)
+
+**Status: PARTIALLY FIXED (2026-07-22).** The hostile-input tests are done:
+`readManifestFacts` is now covered directly (valid deps, null/array document,
+malformed dependencies block, non-string version, missing file), and lockfile
+hostile shapes (null document, packages-as-array, null entry, non-string
+version/resolved) are covered. The unicode-confusable item below is still OPEN.
 
 - `readManifestFacts` has no tests at all (see F1 step 3).
 - Lockfile hostile shapes (null entry, packages-as-array, non-string

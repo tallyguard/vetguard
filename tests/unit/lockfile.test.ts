@@ -98,4 +98,43 @@ describe("readLockfile", () => {
     expect((await readLockfile(d)).status).toBe("unsupported");
     await rm(d, { recursive: true, force: true });
   });
+
+  it("reports a null document as unsupported, not a crash", async () => {
+    const d = await writeLock("package-lock.json", null);
+    expect((await readLockfile(d)).status).toBe("unsupported");
+    await rm(d, { recursive: true, force: true });
+  });
+
+  it("reports packages-as-array as unsupported", async () => {
+    const d = await writeLock("package-lock.json", { lockfileVersion: 3, packages: ["nope"] });
+    expect((await readLockfile(d)).status).toBe("unsupported");
+    await rm(d, { recursive: true, force: true });
+  });
+
+  it("skips a null entry and a non-string version without crashing", async () => {
+    const d = await writeLock("package-lock.json", {
+      lockfileVersion: 3,
+      packages: {
+        "": { name: "root" },
+        "node_modules/bad": null,
+        "node_modules/nover": { version: 123 },
+        "node_modules/ok": { version: "1.0.0", resolved: "https://registry.npmjs.org/ok" },
+      },
+    });
+    const out = await readLockfile(d);
+    if (out.status !== "ok") throw new Error("expected ok");
+    expect(out.facts.map((f) => f.name)).toEqual(["ok"]);
+    await rm(d, { recursive: true, force: true });
+  });
+
+  it("treats a non-string resolved as an unknown source without crashing", async () => {
+    const d = await writeLock("package-lock.json", {
+      lockfileVersion: 3,
+      packages: { "node_modules/weird": { version: "1.0.0", resolved: 123 } },
+    });
+    const out = await readLockfile(d);
+    if (out.status !== "ok") throw new Error("expected ok");
+    expect(out.facts.find((f) => f.name === "weird")?.source).toBe("unknown");
+    await rm(d, { recursive: true, force: true });
+  });
 });
