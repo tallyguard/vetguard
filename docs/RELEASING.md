@@ -41,6 +41,18 @@ A failed OIDC publish surfaces as a misleading `404` or `ENEEDAUTH`, not an
 then an exact-match problem in the trusted-publisher config (workflow filename,
 org, repo, environment). It rarely means the package or a secret is missing.
 
+## Scheduled workflows
+
+`evaluate.yml` (weekly accuracy eval) and `refresh-corpus.yml` (monthly corpus
+refresh) run on cron. GitHub auto-disables cron schedules in a repo with no
+commit activity for 60 days, and scheduled runs do not reset that clock. If the
+repo goes quiet, the Actions tab shows a "workflows disabled" banner; re-enable
+with `gh workflow enable "Accuracy evaluation"` and
+`gh workflow enable "Refresh popular-package corpus"` (or the button in the UI).
+This is an accepted operational caveat, not a bug: both are non-critical, and
+any human PR runs the full gate regardless. You can always run either on demand
+with `gh workflow run "<name>"`.
+
 ## What ships
 
 Only `dist/` (the bundled CLI, library, types, and popular-package corpus),

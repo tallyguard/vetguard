@@ -20,6 +20,7 @@ describe("nonexistent-package detector", () => {
     expect(found[0]?.ruleId).toBe("nonexistent-package");
     expect(found[0]?.severity).toBe("high");
     expect(found[0]?.packageName).toBe("react-codeshift");
+    expect(found[0]?.evidence).toContain("react-codeshift");
   });
 
   it("stays silent when existence is unknown (honest degradation)", () => {

@@ -3,6 +3,21 @@
 Append-only. One entry per decision that would otherwise be re-litigated.
 Format: date, decision, reason, alternatives rejected.
 
+## 2026-07-22: Scheduled-workflow 60-day auto-disable (accept, do not keepalive)
+
+GitHub auto-disables cron schedules in a repo with no commit activity for 60
+days, and scheduled runs do not reset that clock (audit finding F6). Both
+`evaluate.yml` (weekly accuracy eval) and `refresh-corpus.yml` (monthly refresh)
+are affected. Decision: accept and document, rather than add a keepalive.
+Recorded as a known caveat in PROJECT-STATE and an operational note in
+RELEASING.md (`gh workflow enable "<name>"` restores a disabled schedule).
+Reason: both workflows are non-critical (a missed weekly eval or monthly refresh
+is caught by the full gate on the next human PR), and a workflow that runs only
+to reset the clock is the background phone-home-adjacent noise the project
+avoids. Rejected: a self-re-enabling keepalive step (adds noise for a
+low-consequence problem); a third-party keepalive action (a new dependency in CI
+for the same low payoff).
+
 ## 2026-07-22: Corpus refresh automation
 
 `refresh-corpus.yml` regenerates the bundled npm-high-impact corpus monthly (and

@@ -8,6 +8,11 @@ permissions:
   contents: read
   id-token: write # mints the OIDC token npm exchanges for a short-lived publish credential
 
+# Serialize releases; never cancel an in-flight publish.
+concurrency:
+  group: release
+  cancel-in-progress: false
+
 jobs:
   publish:
     runs-on: ubuntu-latest # GitHub-hosted runner; self-hosted is not supported for trusted publishing
@@ -31,6 +36,7 @@ jobs:
           fi
       - run: npm run typecheck
       - run: npm run lint
+      - run: npm run format:check
       - run: npm test
       - run: npm run build
       - run: npm run evaluate # accuracy gate: a regression blocks the release

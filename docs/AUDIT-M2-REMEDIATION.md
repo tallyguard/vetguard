@@ -198,6 +198,15 @@ config-only.
 
 ### F6. Scheduled workflows can be silently auto-disabled after 60 days of repo inactivity (MEDIUM, operational)
 
+**Status: FIXED (2026-07-22) - option 1 (accept and document).** Chose the
+no-noise path over a self-re-enabling keepalive: a workflow that runs solely to
+reset the 60-day clock is exactly the phone-home-adjacent background noise the
+project avoids, and both schedules are non-critical (a missed weekly eval or
+monthly refresh is caught on the next human PR, which runs the full gate). The
+caveat is now recorded in PROJECT-STATE known caveats and in RELEASING.md (a
+60-day-quiet repo shows an Actions-tab banner; `gh workflow enable` restores the
+schedules). Recorded in DECISIONS.md.
+
 GitHub disables cron schedules in repos with no commit activity for 60
 days; scheduled runs themselves do not reset the clock, and a refresh run
 that opens no PR creates no activity either. Both `evaluate.yml` (weekly
@@ -240,11 +249,15 @@ generated at test time (do not commit a large file).
 
 ### F8. Missing hostile-input and unicode tests (LOW, follows F1)
 
-**Status: PARTIALLY FIXED (2026-07-22).** The hostile-input tests are done:
-`readManifestFacts` is now covered directly (valid deps, null/array document,
-malformed dependencies block, non-string version, missing file), and lockfile
-hostile shapes (null document, packages-as-array, null entry, non-string
-version/resolved) are covered. The unicode-confusable item below is still OPEN.
+**Status: FIXED for hostile-input; unicode-confusable DEFERRED (2026-07-22).**
+The hostile-input tests are done: `readManifestFacts` is now covered directly
+(valid deps, null/array document, malformed dependencies block, non-string
+version, missing file), and lockfile hostile shapes (null document,
+packages-as-array, null entry, non-string version/resolved) are covered. The
+unicode-confusable item below is deferred to a dedicated detector change (NFKC
+normalization plus homoglyph tests are a detection-logic change, not a test gap,
+and belong on their own branch with fixtures and clean controls); recorded as a
+known limitation in ROADMAP and PROJECT-STATE known caveats.
 
 - `readManifestFacts` has no tests at all (see F1 step 3).
 - Lockfile hostile shapes (null entry, packages-as-array, non-string
@@ -257,6 +270,16 @@ version/resolved) are covered. The unicode-confusable item below is still OPEN.
 
 ### F9. Milestone done-criteria not yet demonstrated live (LOW, process honesty)
 
+**Status: FIXED (2026-07-22).** Both scheduled workflows were dispatched via
+`workflow_dispatch` and observed green. `evaluate.yml` ("Accuracy evaluation")
+ran the offline eval to completion. `refresh-corpus.yml` ran and correctly took
+the no-change path (same npm-high-impact corpus, no branch pushed, no compare
+link), which is the intended steady-state behaviour after F2. The observed
+results are recorded in PROJECT-STATE. Note the automated-PR path was
+deliberately removed in F2 (GITHUB_TOKEN-created PRs do not trigger CI, and the
+org disallows Actions opening PRs); the compare-link flow is what a maintainer
+follows, and it runs the full gate on the human-opened PR.
+
 - ROADMAP 2.2 is "done when the workflow runs green on a schedule";
   `evaluate.yml` ("Accuracy evaluation") is registered but has zero runs
   (cron has not fired since it landed; never dispatched). Run
@@ -268,6 +291,18 @@ version/resolved) are covered. The unicode-confusable item below is still OPEN.
   once and record the observed result in PROJECT-STATE.
 
 ### F10. Minor polish (LOW, batchable as one cleanup branch where sensible)
+
+**Status: FIXED (2026-07-22), except SHA-pinning which is DEFERRED.**
+`nonexistent-package` now carries a concrete `evidence` string (with a test
+asserting it); `release.yml` runs `format:check`, so the release gate is no
+longer a subset of CI; `ci.yml` and `release.yml` have concurrency groups (CI
+cancels superseded PR runs, release never cancels an in-flight publish). The
+refresh-corpus items (PR-for-metadata-only, no already-open-PR check,
+substring grep) were all resolved by the F2 rework: it no longer opens a PR
+(compare-link flow) and the diff filter is anchored to
+`^[+-] *generatedAt:`. SHA-pinning third-party actions (with Dependabot) is
+real hardening but a separate, ongoing concern (it needs Dependabot config and
+per-action SHA lookups); deferred and recorded as a follow-up in ROADMAP.
 
 - `nonexistent-package` findings carry no `evidence` field (detail prose
   only); `unpublished-version` attaches evidence only when a version is
