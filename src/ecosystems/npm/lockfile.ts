@@ -52,7 +52,8 @@ export function nameFromLockPath(lockPath: string): string | undefined {
 function sourceFromEntry(entry: LockEntry): DependencySource {
   if (entry.link) return "link";
   const resolved = entry.resolved;
-  if (!resolved) return "unknown";
+  // Untrusted lockfile: a non-string `resolved` cannot be classified.
+  if (typeof resolved !== "string") return "unknown";
   if (resolved.startsWith("git+") || resolved.startsWith("git:")) return "git";
   if (resolved.startsWith("file:")) return "file";
   if (resolved.includes(REGISTRY_HOST)) return "registry";
@@ -79,18 +80,24 @@ export async function readLockfileFile(lockPath: string): Promise<LockfileOutcom
     return { status: "absent" };
   }
 
-  let doc: LockfileDocument;
+  let doc: unknown;
   try {
-    doc = JSON.parse(text) as LockfileDocument;
+    doc = JSON.parse(text);
   } catch (err) {
     return {
       status: "unsupported",
       reason: `${lockPath} is not valid JSON: ${err instanceof Error ? err.message : String(err)}`,
     };
   }
+  // Untrusted input: anything but a JSON object is an unsupported shape, not a crash.
+  if (typeof doc !== "object" || doc === null || Array.isArray(doc)) {
+    return { status: "unsupported", reason: `${lockPath} is not a JSON object` };
+  }
+  const document = doc as LockfileDocument;
 
-  const version = doc.lockfileVersion ?? 0;
-  if (!doc.packages || version < 2) {
+  const version = typeof document.lockfileVersion === "number" ? document.lockfileVersion : 0;
+  const packages = document.packages;
+  if (typeof packages !== "object" || packages === null || Array.isArray(packages) || version < 2) {
     return {
       status: "unsupported",
       reason: `package-lock lockfileVersion ${version} is not supported (need v2 or v3)`,
@@ -99,9 +106,12 @@ export async function readLockfileFile(lockPath: string): Promise<LockfileOutcom
 
   const seen = new Set<string>();
   const facts: PackageFacts[] = [];
-  for (const [lockPathKey, entry] of Object.entries(doc.packages)) {
+  for (const [lockPathKey, rawEntry] of Object.entries(packages as Record<string, unknown>)) {
+    // Skip a malformed entry (null, array, non-object) rather than crashing on its fields.
+    if (typeof rawEntry !== "object" || rawEntry === null || Array.isArray(rawEntry)) continue;
+    const entry = rawEntry as LockEntry;
     const name = nameFromLockPath(lockPathKey);
-    if (!name || !entry.version) continue;
+    if (!name || typeof entry.version !== "string" || entry.version.length === 0) continue;
 
     const dedupeKey = `${name}@${entry.version}`;
     if (seen.has(dedupeKey)) continue;
@@ -113,8 +123,8 @@ export async function readLockfileFile(lockPath: string): Promise<LockfileOutcom
       kind: kindFromEntry(entry),
       source: sourceFromEntry(entry),
       hasInstallScript: entry.hasInstallScript === true,
-      ...(entry.resolved === undefined ? {} : { resolvedUrl: entry.resolved }),
-      ...(entry.integrity === undefined ? {} : { integrity: entry.integrity }),
+      ...(typeof entry.resolved === "string" ? { resolvedUrl: entry.resolved } : {}),
+      ...(typeof entry.integrity === "string" ? { integrity: entry.integrity } : {}),
       evidencePath: `${lockPath} (${lockPathKey})`,
     });
   }
