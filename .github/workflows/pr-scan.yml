@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [main]
 
+# One run per PR: rapid pushes must not interleave the sticky-comment find-then-post.
+concurrency:
+  group: pr-scan-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   security-events: write
@@ -22,16 +27,27 @@ jobs:
       - run: npm run build
       # vetguard is published, but this dogfoods the flow from the local build so
       # it scans the code in the PR, not a released version. External consumers use
-      # the published action (see README).
+      # the published action (see README). This workflow is informational: it
+      # tolerates exit 1 (findings) but fails on exit >= 2 (a scanner crash), so a
+      # broken build cannot masquerade as a clean, empty report.
       - name: Scan dependencies (SARIF)
-        run: node dist/cli.js scan . --sarif > vetguard.sarif || true
+        run: |
+          set +e
+          node dist/cli.js scan . --sarif > vetguard.sarif
+          code=$?
+          set -e
+          if [ "$code" -ge 2 ]; then echo "vetguard exited $code (scan error)"; exit "$code"; fi
       - name: Scan dependencies (summary + sticky PR comment)
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
           REPO: ${{ github.repository }}
         run: |
-          node dist/cli.js scan . --markdown | tee vetguard-report.md >> "$GITHUB_STEP_SUMMARY" || true
+          set +e
+          node dist/cli.js scan . --markdown | tee vetguard-report.md >> "$GITHUB_STEP_SUMMARY"
+          code=${PIPESTATUS[0]}
+          set -e
+          if [ "$code" -ge 2 ]; then echo "vetguard exited $code (scan error)"; exit "$code"; fi
           # Match our marker AND the actions-bot author so a PR author cannot redirect the update.
           existing=$(gh api "repos/${REPO}/issues/${PR}/comments" \
             --jq 'map(select((.body | contains("<!-- vetguard-report -->")) and .user.login == "github-actions[bot]")) | .[0].id // empty' 2>/dev/null || true)
