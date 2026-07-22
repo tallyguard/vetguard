@@ -171,6 +171,12 @@ understating detection is exactly the "stale record" CLAUDE.md forbids.
 
 ### F5. pr-scan.yml masks scanner crashes and has a sticky-comment race (MEDIUM)
 
+**Status: FIXED (2026-07-22).** Both scan steps now capture the exit code (via
+`PIPESTATUS` for the piped one) and `exit "$code"` when it is >= 2, so a scanner
+crash fails the step while findings (exit 1) are still tolerated. A `concurrency`
+group keyed on the PR number with `cancel-in-progress` prevents interleaved
+sticky-comment posts.
+
 Two defects in `.github/workflows/pr-scan.yml`:
 
 - The scan steps append `|| true` without inspecting the exit code
