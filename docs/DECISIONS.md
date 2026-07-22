@@ -3,6 +3,25 @@
 Append-only. One entry per decision that would otherwise be re-litigated.
 Format: date, decision, reason, alternatives rejected.
 
+## 2026-07-22: Corpus refresh automation
+
+`refresh-corpus.yml` regenerates the bundled npm-high-impact corpus monthly (and
+on demand). When the corpus content changes (a name change or a source-version
+bump, not just the restamped `generatedAt` timestamp), it pushes a branch and
+prints a compare link; a maintainer opens the PR from that link, which runs the
+full gate (including the accuracy eval) before merge. It never direct-pushes to
+main. The workflow deliberately does NOT call `gh pr create`: a PR opened by the
+built-in `GITHUB_TOKEN` does not trigger workflow runs (GitHub's anti-recursion
+rule), so an auto-opened PR would sit unmergeable with its required `gate` checks
+never running; a human-opened compare-link PR is actor-attributed to the
+maintainer and runs CI. Rejected: `gh pr create` with the built-in token
+(CI-less, unmergeable PR); enabling the org "Actions may create PRs" setting
+(does not fix the no-CI problem, and the org disallows it anyway); a stored PAT
+(a long-lived credential, against the OIDC-only stance); a GitHub App
+installation token (viable for fully-automated PRs later, but overkill for a
+monthly maintainer click); direct-push to main (skips review and the accuracy
+gate).
+
 ## 2026-07-21: Known-CVE detection via OSV.dev
 
 The `known-cve` detector answers "does this resolved version have a known

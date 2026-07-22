@@ -97,6 +97,12 @@ Resolution steps:
 
 ### F2. The refresh-corpus auto-created PR will not run the CI gate (HIGH, defeats the feature's stated promise)
 
+**Status: FIXED (2026-07-22).** Adopted option 1: `refresh-corpus.yml` no longer
+calls `gh pr create`. It pushes a branch and prints a compare link; a maintainer
+opens the PR from the link, which runs the full gate. The DECISIONS entry,
+ROADMAP 2.3, PROJECT-STATE, and the workflow comment now state this and drop the
+org-setting recommendation. (Prior PR #26 was closed and superseded.)
+
 GitHub does not create workflow runs for events triggered with the built-in
 `GITHUB_TOKEN` (documented anti-recursion rule; only workflow_dispatch and
 repository_dispatch are exempt). `refresh-corpus.yml` pushes the branch and
