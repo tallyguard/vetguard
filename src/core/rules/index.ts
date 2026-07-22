@@ -5,6 +5,7 @@ import { installScripts } from "./install-scripts.js";
 import { unpublishedVersion } from "./unpublished-version.js";
 import { typosquat } from "./typosquat.js";
 import { hallucinationName } from "./hallucination-name.js";
+import { scopedLookalike } from "./scoped-lookalike.js";
 import { knownCve } from "./known-cve.js";
 
 /** All built-in detectors. New detectors are registered here. */
@@ -15,5 +16,6 @@ export const builtinDetectors: Detector[] = [
   unpublishedVersion,
   typosquat,
   hallucinationName,
+  scopedLookalike,
   knownCve,
 ];
