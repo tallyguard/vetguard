@@ -19,7 +19,10 @@ inputs:
     default: "false"
   version:
     description: vetguard version to run (npm dist-tag or version).
-    default: latest
+    # Pinned to the release this action ships in so `@vX.Y.Z` runs vetguard
+    # X.Y.Z, not whatever `latest` is on npm. Bump in the release PR alongside
+    # package.json (see docs/RELEASING.md). Override with the `version:` input.
+    default: 0.3.0
 
 runs:
   using: composite

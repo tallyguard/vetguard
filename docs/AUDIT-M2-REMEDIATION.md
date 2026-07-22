@@ -34,8 +34,9 @@ gate green).
   timestamp-only restamp produces no PR; a name change, a count change, and
   an added name containing the substring "generatedAt" all produce a PR; a
   no-op diff produces no PR.
-- Version story consistent at 0.2.0 (package.json, README pins,
-  PROJECT-STATE), except finding F4 below.
+- Version story consistent at 0.3.0 (package.json, action.yml default, README
+  pins, PROJECT-STATE); last npm publish is 0.2.0 until the maintainer cuts the
+  v0.3.0 Release. F4 fixed.
 - DECISIONS.md and ROADMAP.md changes on the PR #26 branch match the
   workflow as implemented.
 
@@ -140,6 +141,15 @@ or a pushed branch plus link. Record the result in PROJECT-STATE.
 
 ### F3. The GitHub Action runs vetguard@latest even when the action tag is pinned (HIGH, consumer trust)
 
+**Status: FIXED (2026-07-22), publish maintainer-gated.** The `action.yml`
+`version` input now defaults to `0.3.0` (not `latest`), with an inline comment
+and a RELEASING.md checklist step requiring it to be bumped in lockstep with
+package.json in every release PR, so the tag `vX.Y.Z` ships an action that runs
+`vetguard@X.Y.Z` by default. Verified by reading the composite steps: with the
+input omitted, `VETGUARD_VERSION` is `0.3.0`, so `pkg` resolves to
+`vetguard@0.3.0`. The README notes `version:` can override. This ships in the
+v0.3.0 release; the npm publish itself is maintainer-gated.
+
 `action.yml` input `version` defaults to `latest` and the steps run
 `npx --yes vetguard@${VETGUARD_VERSION}`. The README example is
 `uses: tallyguard/vetguard@v0.2.0` with no `version:` input, and
@@ -161,6 +171,13 @@ Resolution steps:
    the resolved `pkg` string is `vetguard@0.2.0` when the input is omitted.
 
 ### F4. README says "Six detectors"; eight are live (MEDIUM, doc accuracy)
+
+**Status: FIXED (2026-07-22).** README intro now reads "Eight detectors" (the
+"Live today" list already enumerated all eight: nonexistent-package,
+young-package, install-scripts, unpublished-version, typosquat,
+hallucination-name, scoped-lookalike, known-cve, matching the eight registered
+in `src/core/rules/index.ts`). Fixed in the v0.3.0 release-prep PR alongside the
+version pins.
 
 README.md line 8 says "Six detectors"; the README's own "Live today" list
 and the code both have eight (scoped-lookalike and known-cve are newer).

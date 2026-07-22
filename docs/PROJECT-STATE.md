@@ -115,12 +115,17 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   open the PR (which runs the gate). It does not `gh pr create`: a
   GITHUB_TOKEN-opened PR would not trigger CI (anti-recursion rule), so it would
   be unmergeable. Never direct-pushes to main.
-- 2026-07-22: **Milestone 2 audit remediated (in progress).** A full audit
-  (AUDIT-M2-REMEDIATION.md, F1-F10) found real gaps. F1 (stop-the-line: hostile
-  package.json/lockfile crashed the scanner) fixed with guards + tests. F2
-  (auto-PR would not run CI) fixed by making the compare-link the designed path.
-  Remaining: F3/F4 (Action pins latest; README detector count) fold into the
-  v0.3.0 release; F5-F10 hardening and polish.
+- 2026-07-22: **Milestone 2 audit remediated.** A full audit
+  (AUDIT-M2-REMEDIATION.md, F1-F10) found real gaps, now all resolved. F1
+  (stop-the-line: hostile package.json/lockfile crashed the scanner) fixed with
+  guards + tests. F2 (auto-PR would not run CI) fixed by making the compare-link
+  the designed path. F5 (pr-scan masked crashes) and F7 (no size caps) hardened;
+  F6 (60-day schedule auto-disable) accepted and documented; F8 hostile-input
+  tests added (unicode-confusable deferred, tracked in ROADMAP); F9 both
+  schedules dispatched green; F10 polish. F3 (Action ran `latest`) and F4 (README
+  detector count) fixed in the v0.3.0 release prep: package.json and the
+  action.yml `version` default are 0.3.0, README pins repinned to `@v0.3.0`.
+  The v0.3.0 npm publish is maintainer-gated (cut the GitHub Release).
 
 ## Stack
 
@@ -194,7 +199,11 @@ is still a follow-up.
 ## Known caveats
 
 - Version is single-sourced from package.json (read at runtime by
-  `src/index.ts`); current published release is vetguard@0.2.0.
+  `src/index.ts`). package.json is 0.3.0, prepared for release; the last
+  version published to npm is 0.2.0. The GitHub Release for v0.3.0 (which
+  triggers the OIDC publish) is cut by the maintainer, so 0.3.0 goes live on
+  npm at that point, not at merge. The `action.yml` `version` default is kept
+  in lockstep with package.json (0.3.0).
 - `npm audit` is clean. Shipped code has zero runtime dependencies, so a dev
   dependency advisory (build/test toolchain) never reaches users; esbuild is
   pinned via `overrides` to stay ahead of GHSA-g7r4-m6w7-qqqr (see DECISIONS).

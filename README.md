@@ -5,7 +5,7 @@ AI-assisted development created: hallucinated (slopsquatted) dependencies,
 typosquats, and freshly registered malicious packages. No account, no server,
 no telemetry.
 
-> `vetguard@0.2.0` is on npm, published with provenance. Six detectors,
+> `vetguard@0.3.0` is on npm, published with provenance. Eight detectors,
 > full-tree `package-lock` scanning, diff mode, a config file and baseline for
 > brownfield adoption, and a GitHub Action with text/JSON/SARIF/markdown output.
 > Roadmap to v1.0: [docs/ROADMAP.md](docs/ROADMAP.md).
@@ -130,7 +130,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: tallyguard/vetguard@v0.2.0
+      - uses: tallyguard/vetguard@v0.3.0
         with:
           fail-on: high # fail the check only on high/critical findings
           comment: true # post/update a single sticky PR comment (optional)
@@ -145,9 +145,11 @@ pushes, so it never stacks. It needs `pull-requests: write`; leave it off (the
 default) to rely on the SARIF annotations and job summary alone. On pull requests
 from forks the token is read-only, so the comment is skipped without failing.
 
-> Pin the action to an exact release (`@v0.2.0`) while vetguard is pre-1.0, since
+> Pin the action to an exact release (`@v0.3.0`) while vetguard is pre-1.0, since
 > 0.x minor versions may change behaviour; a moving `@v1` tag will follow the
-> 1.0 release. This repository also scans its own pull requests from source via
+> 1.0 release. Each tag runs the matching vetguard version by default (override
+> with the `version:` input). This repository also scans its own pull requests
+> from source via
 > [.github/workflows/pr-scan.yml](.github/workflows/pr-scan.yml).
 
 ### Scan only what a pull request changes
@@ -171,7 +173,7 @@ jobs:
         with:
           fetch-depth: 0 # so the base branch's lockfile is available
       - run: git show "origin/${{ github.base_ref }}:package-lock.json" > /tmp/base-lock.json
-      - run: npx vetguard@0.2.0 diff --base /tmp/base-lock.json --fail-on high
+      - run: npx vetguard@0.3.0 diff --base /tmp/base-lock.json --fail-on high
 ```
 
 ## What it checks

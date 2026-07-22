@@ -1,6 +1,6 @@
 {
   "name": "vetguard",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Local-first scanner for AI-era npm supply-chain threats: hallucinated (slopsquatted) dependencies, typosquats, malicious young packages, and prompt injection aimed at coding agents.",
   "keywords": [
     "npm",
