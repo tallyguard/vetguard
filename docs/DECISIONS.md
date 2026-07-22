@@ -3,6 +3,21 @@
 Append-only. One entry per decision that would otherwise be re-litigated.
 Format: date, decision, reason, alternatives rejected.
 
+## 2026-07-22: Corpus refresh automation
+
+`refresh-corpus.yml` regenerates the bundled npm-high-impact corpus monthly and
+opens a PR when the name list changes; it never direct-pushes to `main`, so the
+refresh flows through the gate (including the accuracy eval). Change detection
+ignores the `generatedAt` timestamp the refresh script restamps every run, so an
+unchanged corpus produces no PR. The PR is opened with the built-in
+`GITHUB_TOKEN`. Known constraint: the tallyguard org currently disallows Actions
+from creating PRs, so the step falls back to pushing the branch and printing a
+one-click compare link; enabling the org-level "Allow GitHub Actions to create
+and approve pull requests" setting makes it fully automatic (merge stays
+owner-gated regardless). Rejected: a stored PAT secret (a long-lived credential
+to leak, against the OIDC-only, no-stored-secrets stance); direct-pushing the
+regenerated corpus to `main` (skips review and the accuracy gate).
+
 ## 2026-07-21: Known-CVE detection via OSV.dev
 
 The `known-cve` detector answers "does this resolved version have a known

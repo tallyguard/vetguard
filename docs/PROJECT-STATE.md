@@ -108,8 +108,14 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   typosquat and offline-capable; the scoped package itself, corpus members
   (real legacy unscoped forms), and the `@types` scope are never suspects.
   Verified live: `jridgewell-trace-mapping` flags scoped-lookalike, `types-node`
-  and `@babel/core` stay clean of it. Next: M2.3 corpus refresh automation, or
-  M2.5 repo-mismatch detector.
+  and `@babel/core` stay clean of it.
+- 2026-07-22: **M2.3 corpus refresh automation (DONE).** `refresh-corpus.yml`
+  regenerates the bundled corpus monthly and opens a PR only when the name list
+  changes (a timestamp-only diff is ignored), never direct-pushing to main.
+  Change-detection proven locally. Caveat: the org disallows Actions creating
+  PRs, so the step falls back to pushing a branch + a compare link until the
+  org-level setting is enabled (see DECISIONS). Next: M2.5 repo-mismatch detector
+  (needs bundled repo-URL data), or M3 (reach: yarn/pnpm lockfiles, workspaces).
 
 ## Stack
 
@@ -161,7 +167,8 @@ evaluate`): top-1000 popular clean + labeled positives flag, offline and
 - `tests/unit/` - Vitest unit tests.
 - `.github/workflows/ci.yml` - the gate on Node 20 + 22 (typecheck, lint,
   format, test, build, offline dogfood, accuracy eval). `evaluate.yml` - weekly
-  scheduled accuracy eval; the eval also gates `release.yml`.
+  scheduled accuracy eval; the eval also gates `release.yml`. `refresh-corpus.yml`
+  - monthly corpus regeneration that opens a data-only PR when it changes.
 - Governance (public repo): `CONTRIBUTING.md`, `SECURITY.md` (private
   disclosure), `CODE_OF_CONDUCT.md`, `.github/` PR and issue templates.
 
