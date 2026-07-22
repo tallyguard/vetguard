@@ -198,3 +198,16 @@ is still a follow-up.
 - `npm audit` is clean. Shipped code has zero runtime dependencies, so a dev
   dependency advisory (build/test toolchain) never reaches users; esbuild is
   pinned via `overrides` to stay ahead of GHSA-g7r4-m6w7-qqqr (see DECISIONS).
+- Scheduled workflows (`evaluate.yml` weekly, `refresh-corpus.yml` monthly)
+  run on cron. GitHub auto-disables cron in a repo with no commit activity for
+  60 days, and scheduled runs do not reset that clock. If the repo goes quiet
+  the Actions tab shows a banner; `gh workflow enable "<name>"` restores them.
+  Accepted by choice over a keepalive (see DECISIONS, F6): both are
+  non-critical and the next human PR runs the full gate regardless.
+- Both scheduled workflows were dispatched and observed green (2026-07-22):
+  `evaluate.yml` ran the offline accuracy eval to completion, and
+  `refresh-corpus.yml` took the no-change path (same corpus, no branch pushed).
+- Lookalike name detection normalizes via lowercase plus separator stripping,
+  not unicode NFKC. A confusable-homoglyph typosquat (e.g. a Cyrillic
+  character standing in for a Latin one) is not yet normalized or detected; a
+  known limitation tracked in ROADMAP for a dedicated detector change.

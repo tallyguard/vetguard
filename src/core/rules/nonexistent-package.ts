@@ -24,6 +24,7 @@ export const nonexistentPackage: Detector = {
         title: "Dependency does not exist on the registry",
         detail:
           "The registry has no record of this package name. AI assistants routinely hallucinate package names, and attackers register the predictable ones. Confirm the intended package before installing.",
+        evidence: `the registry returned no record for "${pkg.name}"`,
         ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
       },
     ];

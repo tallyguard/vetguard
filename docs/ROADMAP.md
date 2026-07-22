@@ -270,6 +270,24 @@ Post-v1 backlog (explicitly out of scope before v1): PyPI adapter (proves the
 ecosystem-agnostic core), bun.lockb, community rule packs, watch mode, staged
 npm publishing.
 
+## Known limitations and follow-ups
+
+Tracked gaps that are not yet scheduled into a milestone. Each is a real,
+bounded piece of work, deliberately deferred with a reason (from the M2 audit,
+`docs/AUDIT-M2-REMEDIATION.md`):
+
+- **Unicode-confusable names (from F8).** Lookalike name detection normalizes
+  via lowercase plus separator stripping only, not NFKC. A homoglyph typosquat
+  (a Cyrillic character standing in for a visually identical Latin one) is
+  neither normalized nor flagged. Fix is a dedicated detector change: NFKC (or
+  a curated confusable map) normalization, homoglyph fixtures, and clean
+  controls so legitimate non-ASCII names do not false-positive. Deferred off
+  the polish batch because it is detection logic, not a test gap.
+- **SHA-pin third-party GitHub Actions (from F10).** Workflows float major tags
+  (`actions/checkout@v4`). Pinning to full commit SHAs with Dependabot updating
+  them matches the supply-chain thesis. Deferred as ongoing hardening: it needs
+  Dependabot config plus per-action SHA lookups, not a one-line change.
+
 ## Sequencing summary
 
 | Order | Milestone                | Rough size    | Depends on          |
