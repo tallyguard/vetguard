@@ -1,5 +1,6 @@
-import { readFile, writeFile } from "node:fs/promises";
+import { writeFile } from "node:fs/promises";
 import path from "node:path";
+import { readTextCapped, SIZE_CAPS, FileTooLargeError } from "./util/fs.js";
 import type { BaselineEntry } from "./core/model.js";
 
 export const BASELINE_FILENAME = ".vetguard-baseline.json";
@@ -40,8 +41,9 @@ export async function readBaseline(dir: string): Promise<BaselineEntry[] | undef
   const filePath = path.join(dir, BASELINE_FILENAME);
   let text: string;
   try {
-    text = await readFile(filePath, "utf8");
-  } catch {
+    text = await readTextCapped(filePath, SIZE_CAPS.baseline);
+  } catch (err) {
+    if (err instanceof FileTooLargeError) throw new BaselineError(err.message);
     return undefined;
   }
   let raw: unknown;

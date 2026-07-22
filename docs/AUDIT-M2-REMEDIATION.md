@@ -216,6 +216,15 @@ Resolution: pick one and record it in DECISIONS.md.
 
 ### F7. No size caps on file reads or network bodies (LOW, hardening)
 
+**Status: FIXED (2026-07-22).** New `src/util/fs.ts` adds `readTextCapped` (stat
+before read, `FileTooLargeError` over the cap) used by manifest (8 MB), lockfile
+(128 MB), config (1 MB), and baseline (16 MB); oversize degrades honestly (a
+too-large lockfile is unsupported, an oversize manifest/config/baseline is a
+clear read/config error, not a crash). The registry, downloads, and OSV clients
+now reject a body whose Content-Length exceeds 64 MB before parsing. Follow-up
+noted in code: a chunked response without a Content-Length is not byte-capped
+(would need a streaming counter).
+
 `manifest.ts`, `lockfile.ts`, `config.ts` and `baseline-io.ts` read files
 with no size guard; `registry.ts`, `downloads.ts` and `osv.ts` call
 `res.json()` unbounded. A scanned tree is hostile input, and all three

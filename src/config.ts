@@ -1,5 +1,5 @@
-import { readFile } from "node:fs/promises";
 import path from "node:path";
+import { readTextCapped, SIZE_CAPS, FileTooLargeError } from "./util/fs.js";
 import type { IgnoreRule, Severity } from "./core/model.js";
 import { SEVERITY_ORDER } from "./core/model.js";
 
@@ -70,8 +70,9 @@ export async function loadConfig(dir: string): Promise<Config | undefined> {
   const configPath = path.join(dir, CONFIG_FILENAME);
   let text: string;
   try {
-    text = await readFile(configPath, "utf8");
-  } catch {
+    text = await readTextCapped(configPath, SIZE_CAPS.config);
+  } catch (err) {
+    if (err instanceof FileTooLargeError) throw new ConfigError(err.message);
     return undefined;
   }
   let raw: unknown;
