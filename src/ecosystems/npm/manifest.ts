@@ -1,6 +1,6 @@
-import { readFile } from "node:fs/promises";
 import path from "node:path";
 import type { DependencyKind, DependencySource, PackageFacts } from "../../core/model.js";
+import { readTextCapped, SIZE_CAPS } from "../../util/fs.js";
 
 interface RawManifest {
   dependencies?: Record<string, string>;
@@ -41,7 +41,7 @@ export async function readManifestFacts(dir: string): Promise<PackageFacts[]> {
   const manifestPath = path.join(dir, "package.json");
   let raw: unknown;
   try {
-    raw = JSON.parse(await readFile(manifestPath, "utf8"));
+    raw = JSON.parse(await readTextCapped(manifestPath, SIZE_CAPS.manifest));
   } catch (err) {
     throw new Error(
       `Could not read ${manifestPath}: ${err instanceof Error ? err.message : String(err)}`,

@@ -1,6 +1,7 @@
-import { readFile, access } from "node:fs/promises";
+import { access } from "node:fs/promises";
 import path from "node:path";
 import type { DependencyKind, DependencySource, PackageFacts } from "../../core/model.js";
+import { readTextCapped, SIZE_CAPS, FileTooLargeError } from "../../util/fs.js";
 
 const REGISTRY_HOST = "registry.npmjs.org";
 
@@ -75,8 +76,9 @@ function kindFromEntry(entry: LockEntry): DependencyKind {
 export async function readLockfileFile(lockPath: string): Promise<LockfileOutcome> {
   let text: string;
   try {
-    text = await readFile(lockPath, "utf8");
-  } catch {
+    text = await readTextCapped(lockPath, SIZE_CAPS.lockfile);
+  } catch (err) {
+    if (err instanceof FileTooLargeError) return { status: "unsupported", reason: err.message };
     return { status: "absent" };
   }
 

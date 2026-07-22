@@ -5,6 +5,8 @@
  * does not serve). `undefined` means "unknown", never "zero" or "safe".
  */
 
+import { contentLengthOver, NETWORK_BODY_CAP } from "../../util/fs.js";
+
 const DEFAULT_API = "https://api.npmjs.org";
 
 export interface DownloadsClientOptions {
@@ -42,6 +44,7 @@ export function createDownloadsClient(options: DownloadsClientOptions = {}): Dow
         headers: { accept: "application/json" },
       });
       if (!res.ok) return undefined;
+      if (contentLengthOver(res, NETWORK_BODY_CAP)) return undefined;
       const body = (await res.json()) as DownloadsResponse;
       return typeof body.downloads === "number" ? body.downloads : undefined;
     } catch {

@@ -7,6 +7,7 @@
  */
 import type { Advisory } from "../../core/model.js";
 import { mapWithConcurrency } from "../../util/concurrency.js";
+import { contentLengthOver, NETWORK_BODY_CAP } from "../../util/fs.js";
 import { resolveAdvisorySeverity } from "./cvss.js";
 
 const DEFAULT_API = "https://api.osv.dev";
@@ -138,6 +139,7 @@ export function createOsvClient(options: OsvClientOptions = {}): OsvClient {
         headers: { accept: "application/json", ...(init?.headers ?? {}) },
       });
       if (!res.ok) throw new Error(`OSV responded ${res.status}`);
+      if (contentLengthOver(res, NETWORK_BODY_CAP)) throw new Error("OSV response too large");
       return await res.json();
     } finally {
       clearTimeout(timer);

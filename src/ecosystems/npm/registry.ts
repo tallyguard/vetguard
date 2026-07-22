@@ -4,6 +4,8 @@
  * completed returns status "unverified", never a value that reads as "safe".
  */
 
+import { contentLengthOver, NETWORK_BODY_CAP } from "../../util/fs.js";
+
 const DEFAULT_REGISTRY = "https://registry.npmjs.org";
 const INSTALL_HOOKS = ["preinstall", "install", "postinstall"] as const;
 
@@ -111,6 +113,9 @@ export function createRegistryClient(options: RegistryClientOptions = {}): Regis
       if (res.status === 404) return { status: "not-found" };
       if (!res.ok) {
         return { status: "unverified", reason: `registry responded ${res.status}` };
+      }
+      if (contentLengthOver(res, NETWORK_BODY_CAP)) {
+        return { status: "unverified", reason: "registry response too large" };
       }
       const raw = (await res.json()) as RawPackument;
       return { status: "found", packument: parsePackument(name, raw, version) };
