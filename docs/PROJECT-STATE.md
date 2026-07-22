@@ -125,7 +125,11 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   schedules dispatched green; F10 polish. F3 (Action ran `latest`) and F4 (README
   detector count) fixed in the v0.3.0 release prep: package.json and the
   action.yml `version` default are 0.3.0, README pins repinned to `@v0.3.0`.
-  The v0.3.0 npm publish is maintainer-gated (cut the GitHub Release).
+- 2026-07-22: **v0.3.0 published.** The maintainer cut the GitHub Release
+  `v0.3.0`; `release.yml` published to npm via OIDC with SLSA provenance.
+  `vetguard@0.3.0` is the `latest` dist-tag. First release to carry the
+  `known-cve` and `scoped-lookalike` detectors (eight total), the hostile-input
+  guards, and the read/network size caps.
 
 ## Stack
 
@@ -199,11 +203,11 @@ is still a follow-up.
 ## Known caveats
 
 - Version is single-sourced from package.json (read at runtime by
-  `src/index.ts`). package.json is 0.3.0, prepared for release; the last
-  version published to npm is 0.2.0. The GitHub Release for v0.3.0 (which
-  triggers the OIDC publish) is cut by the maintainer, so 0.3.0 goes live on
-  npm at that point, not at merge. The `action.yml` `version` default is kept
-  in lockstep with package.json (0.3.0).
+  `src/index.ts`); current published release is vetguard@0.3.0 (`latest` on npm,
+  with SLSA provenance). The `action.yml` `version` default is kept in lockstep
+  with package.json (0.3.0), so `tallyguard/vetguard@v0.3.0` runs vetguard 0.3.0
+  by default. Publishing is maintainer-gated: cut a GitHub Release tagged
+  `vX.Y.Z` to trigger the OIDC publish (see RELEASING.md).
 - `npm audit` is clean. Shipped code has zero runtime dependencies, so a dev
   dependency advisory (build/test toolchain) never reaches users; esbuild is
   pinned via `overrides` to stay ahead of GHSA-g7r4-m6w7-qqqr (see DECISIONS).
