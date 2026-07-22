@@ -3,7 +3,7 @@
 The live cache. Current facts only; if a change makes a line here wrong,
 fixing it is part of that change. Dates are absolute (YYYY-MM-DD).
 
-Last verified: 2026-07-21
+Last verified: 2026-07-22
 
 ## What this is
 
@@ -95,7 +95,14 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   and a hand-rolled CVSS v3 base score, clamped to at least low and floored to
   medium. Verified live: `check lodash@4.17.4` flags GHSA-jf85-cpcp-j695
   (critical) and others, a current exact version is clean, offline is
-  could-not-verify. Next: M2.2 accuracy evaluation harness.
+  could-not-verify.
+- 2026-07-22: **M2.2 accuracy evaluation harness (DONE).**
+  `scripts/evaluate.ts` runs the offline-capable detectors against the top-1000
+  popular packages (must be zero findings) and a labeled positive corpus (each
+  must flag with the expected rule), exiting non-zero on any regression. It gates
+  CI, runs weekly (`evaluate.yml`), and gates the release. Proven: 0 false
+  positives, 6/6 positives flagged; a planted miss fails it. Next: M2.3 corpus
+  refresh automation, or M2.4 scoped-name coverage.
 
 ## Stack
 
@@ -134,7 +141,9 @@ or `node dist/cli.js scan [dir]` after build.
 - `src/util/` - `concurrency.ts` (bounded parallel map), `names.ts` (pure
   name-distance helpers).
 - `scripts/refresh-popular.mjs` - dev-only corpus regenerator (`npm run
-refresh:popular`).
+refresh:popular`). `scripts/evaluate.ts` - accuracy eval harness (`npm run
+evaluate`): top-1000 popular clean + labeled positives flag, offline and
+  deterministic; a regression exits non-zero.
 - `src/output/` - `terminal.ts`, `color.ts` (ANSI severity colors), `json.ts`,
   `sarif.ts` (GitHub code scanning), `markdown.ts` (PR comment / job summary),
   `exit-code.ts` (`--fail-on` gating).
@@ -143,7 +152,9 @@ refresh:popular`).
 - `src/cli.ts` - CLI entry (shebang preserved by esbuild). `src/index.ts` -
   public library API.
 - `tests/unit/` - Vitest unit tests.
-- `.github/workflows/ci.yml` - the gate on Node 20 + 22.
+- `.github/workflows/ci.yml` - the gate on Node 20 + 22 (typecheck, lint,
+  format, test, build, offline dogfood, accuracy eval). `evaluate.yml` - weekly
+  scheduled accuracy eval; the eval also gates `release.yml`.
 - Governance (public repo): `CONTRIBUTING.md`, `SECURITY.md` (private
   disclosure), `CODE_OF_CONDUCT.md`, `.github/` PR and issue templates.
 

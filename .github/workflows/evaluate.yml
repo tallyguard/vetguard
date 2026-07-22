@@ -1,0 +1,24 @@
+name: Accuracy evaluation
+
+# The detector accuracy gate: the top popular packages must scan clean (no false
+# positives) and the labeled positive corpus must flag (no misses). Runs weekly to
+# catch drift and on demand; it also runs in the CI gate and before every release.
+on:
+  schedule:
+    - cron: "0 6 * * 1" # Mondays 06:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  evaluate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run evaluate

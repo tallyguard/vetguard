@@ -33,6 +33,7 @@ jobs:
       - run: npm run lint
       - run: npm test
       - run: npm run build
+      - run: npm run evaluate # accuracy gate: a regression blocks the release
       # No token, no --provenance: OIDC is auto-detected via id-token: write and the trusted
       # publisher configured on npm, and provenance is generated automatically for a public repo.
       - run: npm publish
