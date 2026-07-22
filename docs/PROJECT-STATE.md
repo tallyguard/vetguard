@@ -108,8 +108,19 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   typosquat and offline-capable; the scoped package itself, corpus members
   (real legacy unscoped forms), and the `@types` scope are never suspects.
   Verified live: `jridgewell-trace-mapping` flags scoped-lookalike, `types-node`
-  and `@babel/core` stay clean of it. Next: M2.3 corpus refresh automation, or
-  M2.5 repo-mismatch detector.
+  and `@babel/core` stay clean of it.
+- 2026-07-22: **M2.3 corpus refresh automation (DONE).** `refresh-corpus.yml`
+  regenerates the corpus monthly; when the content changes (not just the
+  timestamp) it pushes a branch and prints a compare link for a maintainer to
+  open the PR (which runs the gate). It does not `gh pr create`: a
+  GITHUB_TOKEN-opened PR would not trigger CI (anti-recursion rule), so it would
+  be unmergeable. Never direct-pushes to main.
+- 2026-07-22: **Milestone 2 audit remediated (in progress).** A full audit
+  (AUDIT-M2-REMEDIATION.md, F1-F10) found real gaps. F1 (stop-the-line: hostile
+  package.json/lockfile crashed the scanner) fixed with guards + tests. F2
+  (auto-PR would not run CI) fixed by making the compare-link the designed path.
+  Remaining: F3/F4 (Action pins latest; README detector count) fold into the
+  v0.3.0 release; F5-F10 hardening and polish.
 
 ## Stack
 
@@ -161,7 +172,8 @@ evaluate`): top-1000 popular clean + labeled positives flag, offline and
 - `tests/unit/` - Vitest unit tests.
 - `.github/workflows/ci.yml` - the gate on Node 20 + 22 (typecheck, lint,
   format, test, build, offline dogfood, accuracy eval). `evaluate.yml` - weekly
-  scheduled accuracy eval; the eval also gates `release.yml`.
+  scheduled accuracy eval; the eval also gates `release.yml`. `refresh-corpus.yml`
+  - monthly corpus regeneration; pushes a branch + compare link when it changes.
 - Governance (public repo): `CONTRIBUTING.md`, `SECURITY.md` (private
   disclosure), `CODE_OF_CONDUCT.md`, `.github/` PR and issue templates.
 

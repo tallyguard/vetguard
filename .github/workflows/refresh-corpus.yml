@@ -1,0 +1,53 @@
+name: Refresh popular-package corpus
+
+# Monthly regeneration of the bundled npm-high-impact corpus. When the corpus
+# content changes (a name change or a source-version bump, not just the restamped
+# generatedAt timestamp), it pushes a branch and prints a compare link. A
+# maintainer opens the PR from that link, which runs the full gate (including the
+# accuracy eval) before merge. Never direct-pushes to main.
+#
+# The workflow deliberately does NOT open the PR itself. A pull request created by
+# the built-in GITHUB_TOKEN does not trigger workflow runs (GitHub's anti-recursion
+# rule), so an auto-opened PR would sit unmergeable with its required `gate` checks
+# never running. A human-opened PR is actor-attributed to the maintainer and runs CI.
+on:
+  schedule:
+    - cron: "0 4 1 * *" # 1st of each month, 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Regenerate the corpus
+        run: npm run refresh:popular
+      - name: Push a branch and print a compare link when the corpus changed
+        env:
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          data="src/ecosystems/npm/data/popular-packages.ts"
+          # A timestamp-only diff is not a corpus change (refresh restamps generatedAt).
+          meaningful=$(git diff -U0 -- "$data" | grep -E '^[+-]' | grep -vE '^(\+\+\+|---)' | grep -vE '^[+-] *generatedAt:' || true)
+          if [ -z "$meaningful" ]; then
+            echo "corpus content unchanged (only the timestamp); nothing to do"
+            exit 0
+          fi
+          branch="chore/refresh-corpus-$(date -u +%Y%m%d)-${GITHUB_RUN_ID}"
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -b "$branch"
+          git add "$data"
+          git commit -m "Refresh popular-package corpus"
+          git push -u origin "$branch"
+          echo "Corpus changed. Open a PR (it runs the full gate before merge) here:"
+          echo "https://github.com/${REPO}/compare/main...${branch}?expand=1"

@@ -116,7 +116,7 @@ dependencies) and its accuracy is measured, not asserted.
   (`evaluate.yml`), and before every release (`release.yml`). A regression is
   stop-the-line. Done when the workflow runs
   green on a schedule and a deliberately broken threshold fails it.
-- **2.3 Corpus refresh automation.** Monthly scheduled workflow regenerates
+- **2.3 Corpus refresh automation (DONE).** Monthly scheduled workflow regenerates
   the popular-package corpus with the existing refresh script and opens a PR
   (never direct-push). Corpus staleness is a documented FP risk; this manages
   it. Done when a scheduled run produces a mergeable PR with only data
