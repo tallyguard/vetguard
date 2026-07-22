@@ -54,6 +54,7 @@
     "scan": "tsx src/cli.ts scan",
     "check": "npm run build && node dist/cli.js",
     "refresh:popular": "node scripts/refresh-popular.mjs",
+    "evaluate": "tsx scripts/evaluate.ts",
     "prepack": "npm run build"
   },
   "devDependencies": {

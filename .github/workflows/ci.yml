@@ -29,3 +29,5 @@ jobs:
       - run: npm run build
       - name: Dogfood - vetguard scans itself
         run: node dist/cli.js scan . --offline
+      - name: Accuracy evaluation (offline, deterministic)
+        run: npm run evaluate

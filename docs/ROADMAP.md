@@ -107,13 +107,14 @@ dependencies) and its accuracy is measured, not asserted.
   URL. This is table stakes: without it devs must still run npm audit. Done
   when a deliberately old known-vulnerable version (e.g. an old lodash) flags
   with the right advisory and a current version stays clean.
-- **2.2 Accuracy evaluation harness as a release gate.** `scripts/evaluate.mjs`
-  runs the full detector set against (a) the top-1000 popular packages, which
-  must scan clean, and (b) a labeled positive corpus (names plus expected
-  rule, no malware content) seeded with the documented real cases
-  (unused-imports class, crafted typo and recombination names), which must
-  flag. Runs weekly on a schedule and before every release; numbers go in the
-  release notes. A regression is stop-the-line. Done when the workflow runs
+- **2.2 Accuracy evaluation harness as a release gate (DONE).**
+  `scripts/evaluate.ts` runs the offline-capable detectors against (a) the
+  top-1000 popular packages, which must scan clean, and (b) a labeled positive
+  corpus (names plus expected rule, no malware content) seeded with the
+  documented real cases (unused-imports class, crafted typo and recombination
+  names), which must flag. Runs in the CI gate, weekly on a schedule
+  (`evaluate.yml`), and before every release (`release.yml`). A regression is
+  stop-the-line. Done when the workflow runs
   green on a schedule and a deliberately broken threshold fails it.
 - **2.3 Corpus refresh automation.** Monthly scheduled workflow regenerates
   the popular-package corpus with the existing refresh script and opens a PR
