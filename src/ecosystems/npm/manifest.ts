@@ -34,8 +34,8 @@ export function classifySource(spec: string): DependencySource {
 
 /**
  * Reads declared dependencies from a package.json. This is manifest-level only
- * (what was asked for), not the resolved lockfile graph; the lockfile collector
- * (Phase 1) supplies resolved versions and the full transitive tree.
+ * (what was asked for), not the resolved lockfile graph; `readLockfile` supplies
+ * resolved versions and the full transitive tree.
  */
 export async function readManifestFacts(dir: string): Promise<PackageFacts[]> {
   const manifestPath = path.join(dir, "package.json");
