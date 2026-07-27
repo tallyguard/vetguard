@@ -86,8 +86,19 @@ describe("rateNameSignal", () => {
 
 // The point of the shared gate: the three name detectors must agree on who is
 // eligible and how bad it is. A detector drifting off this policy is the
-// regression this block exists to catch.
+// regression this block exists to catch. Each suspect name corpus-matches its
+// detector, and each silent case first proves the name flags without the
+// blocking facts, so silence is attributable to the gate, never to a no-match.
+// The scoped-name and corpus-member gates cannot be exercised this way (a
+// scoped or popular name has no corpus hit to suppress) and are covered by the
+// nameSignalBasis tests above.
 describe("the name detectors share one gating policy", () => {
+  const suspects = [
+    { name: "expres", detector: typosquat },
+    { name: "unused-imports", detector: hallucinationName },
+    { name: "babel-parser", detector: scopedLookalike },
+  ];
+
   const silent: { label: string; overrides: Partial<PackageFacts> }[] = [
     {
       label: "an established package",
@@ -95,26 +106,21 @@ describe("the name detectors share one gating policy", () => {
     },
     { label: "an off-registry source", overrides: { source: "git", existsOnRegistry: false } },
     { label: "a failed lookup", overrides: { existenceUnverifiedReason: "error" } },
-    { label: "a scoped name", overrides: { name: "@scope/name", existsOnRegistry: false } },
   ];
 
   for (const { label, overrides } of silent) {
     it(`all three stay silent on ${label}`, () => {
-      const pkg = facts(overrides);
-      expect(typosquat.detect(pkg)).toEqual([]);
-      expect(hallucinationName.detect(pkg)).toEqual([]);
-      expect(scopedLookalike.detect(pkg)).toEqual([]);
+      for (const { name, detector } of suspects) {
+        const flagging = detector.detect(facts({ name, existsOnRegistry: false }));
+        expect(flagging, `${detector.id} has no corpus match for ${name}`).not.toEqual([]);
+        expect(detector.detect(facts({ name, ...overrides }))).toEqual([]);
+      }
     });
   }
 
   it("all three rate the same facts identically", () => {
     // "expres" is a deletion, not one of typosquat's confident transforms, so
     // no detector applies a bump here and all three must land on the raw rating.
-    const suspects = [
-      { name: "expres", detector: typosquat },
-      { name: "unused-imports", detector: hallucinationName },
-      { name: "babel-parser", detector: scopedLookalike },
-    ];
     for (const { name, detector } of suspects) {
       const pkg = facts({ name, existsOnRegistry: true, ageDays: 3, weeklyDownloads: 4 });
       const rating = rateNameSignal(pkg);
