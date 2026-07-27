@@ -23,7 +23,7 @@ function bump(confidence: Confidence): Confidence {
  *
  * Scoped names (@scope/name) are skipped in this detector: scopes are
  * ownership-gated and the risky direction (an unscoped look-alike of a scoped
- * package) is handled separately later.
+ * package) belongs to the scoped-lookalike detector.
  */
 export function createTyposquatDetector(corpus: PopularCorpus = defaultCorpus): Detector {
   return {
