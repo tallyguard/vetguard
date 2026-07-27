@@ -151,7 +151,8 @@ or `node dist/cli.js scan [dir]` after build.
 - `src/core/` - `model.ts` (types), `engine.ts` (runDetectors + verdict),
   `diff.ts` (`introducedFacts`: head-vs-base set difference), `ignore.ts`
   (`applyIgnores`: config suppressions), `rules/` (pure detectors + registry
-  index).
+  index, plus `name-signal.ts`: the eligibility and risk-rating policy the
+  three name-resemblance detectors share).
 - `src/config.ts` - loads/validates `vetguard.config.json` (failOn, offline,
   ignore-with-mandatory-reason). `src/baseline-io.ts` - reads/writes
   `.vetguard-baseline.json`; `src/core/baseline.ts` - pure `applyBaseline`.

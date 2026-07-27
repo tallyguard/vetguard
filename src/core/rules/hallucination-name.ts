@@ -1,9 +1,6 @@
 import type { Confidence, Detector, Finding, PackageFacts } from "../model.js";
 import { defaultCorpus, type PopularCorpus } from "../../ecosystems/npm/popular.js";
-
-export const HALLUCINATION_POPULAR_FLOOR = 15_000;
-export const HALLUCINATION_LOW_DOWNLOADS = 100;
-export const HALLUCINATION_YOUNG_DAYS = 30;
+import { nameSignalBasis, rateNameSignal } from "./name-signal.js";
 
 /**
  * A name that recombines the tokens of a real popular package, the slopsquat
@@ -11,27 +8,18 @@ export const HALLUCINATION_YOUNG_DAYS = 30;
  * dropping an ecosystem convention affix (unused-imports for
  * eslint-plugin-unused-imports). Unlike typosquat this is not about edit
  * distance; the tokens match a real package but the exact name does not exist as
- * published. Like every name signal it is a gate: it becomes a finding only when
- * the suspect is nonexistent, young, or low-adoption, never on an established
- * package that merely shares tokens. Cross-package blends where a token is
- * itself novel (react-codeshift) are out of scope and fall to nonexistent-package.
- *
- * Scoped names are skipped: scopes are ownership-gated.
+ * published. Eligibility and risk rating are the shared name-signal policy
+ * (`name-signal.ts`), so an established package that merely shares tokens is
+ * never flagged. Cross-package blends where a token is itself novel
+ * (react-codeshift) are out of scope and fall to nonexistent-package.
  */
 export function createHallucinationNameDetector(corpus: PopularCorpus = defaultCorpus): Detector {
   return {
     id: "hallucination-name",
     description: "Flags names that recombine the tokens of a popular package (slopsquat pattern).",
     detect(pkg: PackageFacts): Finding[] {
-      if (pkg.source !== "registry") return [];
-      if (pkg.name.startsWith("@")) return [];
-      if (corpus.has(pkg.name)) return [];
-      // Offline-capable: flag a corpus recombination when existence is unknown,
-      // but only on a deliberate offline scan, never on a transient registry
-      // failure (which would turn a rate-limit into a false positive).
-      const offline =
-        pkg.existsOnRegistry === undefined && pkg.existenceUnverifiedReason === "offline";
-      if (pkg.existsOnRegistry === undefined && !offline) return [];
+      const basis = nameSignalBasis(pkg, corpus.has(pkg.name));
+      if (basis === "skip") return [];
 
       const match = corpus.findRecombination(pkg.name);
       if (!match) return [];
@@ -40,61 +28,35 @@ export function createHallucinationNameDetector(corpus: PopularCorpus = defaultC
         match.kind === "affix-drop"
           ? `drops the convention prefix of "${match.victim}"`
           : `reorders the tokens of "${match.victim}"`;
+      const detail = `This name ${how}, a popular package, but is not itself that package. AI assistants hallucinate plausible names like this, and attackers register them. Confirm you did not mean "${match.victim}".`;
+      const baseEvidence = `token match to "${match.victim}" (popularity rank ${match.rank + 1}), ${match.kind}`;
+      const make = (
+        severity: Finding["severity"],
+        confidence: Confidence,
+        evidence: string,
+      ): Finding => ({
+        ruleId: this.id,
+        severity,
+        confidence,
+        packageName: pkg.name,
+        ...(pkg.version === undefined ? {} : { packageVersion: pkg.version }),
+        title: "Name looks like a recombination of a popular package",
+        detail,
+        evidence,
+        ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
+      });
 
-      if (offline) {
+      if (basis === "offline") {
         // No existence or adoption facts offline: the lowest honest tier.
         return [
-          {
-            ruleId: this.id,
-            severity: "low",
-            confidence: "low",
-            packageName: pkg.name,
-            ...(pkg.version === undefined ? {} : { packageVersion: pkg.version }),
-            title: "Name looks like a recombination of a popular package",
-            detail: `This name ${how}, a popular package, but is not itself that package. AI assistants hallucinate plausible names like this, and attackers register them. Confirm you did not mean "${match.victim}".`,
-            evidence: `token match to "${match.victim}" (popularity rank ${match.rank + 1}), ${match.kind}; existence and adoption unverified (offline scan)`,
-            ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
-          },
+          make("low", "low", `${baseEvidence}; existence and adoption unverified (offline scan)`),
         ];
       }
 
-      const downloads = pkg.weeklyDownloads;
-      const established = downloads !== undefined && downloads >= HALLUCINATION_POPULAR_FLOOR;
-      if (pkg.existsOnRegistry === true && established) return [];
+      const rating = rateNameSignal(pkg);
+      if (!rating) return [];
 
-      let severity: Finding["severity"];
-      let confidence: Confidence;
-      if (pkg.existsOnRegistry === false) {
-        severity = "high";
-        confidence = "high";
-      } else {
-        const young = pkg.ageDays !== undefined && pkg.ageDays <= HALLUCINATION_YOUNG_DAYS;
-        const veryLow = downloads !== undefined && downloads < HALLUCINATION_LOW_DOWNLOADS;
-        if (young || veryLow) {
-          severity = "high";
-          confidence = "medium";
-        } else if (downloads !== undefined) {
-          severity = "medium";
-          confidence = "medium";
-        } else {
-          severity = "low";
-          confidence = "low";
-        }
-      }
-
-      return [
-        {
-          ruleId: this.id,
-          severity,
-          confidence,
-          packageName: pkg.name,
-          ...(pkg.version === undefined ? {} : { packageVersion: pkg.version }),
-          title: "Name looks like a recombination of a popular package",
-          detail: `This name ${how}, a popular package, but is not itself that package. AI assistants hallucinate plausible names like this, and attackers register them. Confirm you did not mean "${match.victim}".`,
-          evidence: `token match to "${match.victim}" (popularity rank ${match.rank + 1}), ${match.kind}`,
-          ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
-        },
-      ];
+      return [make(rating.severity, rating.confidence, baseEvidence)];
     },
   };
 }
