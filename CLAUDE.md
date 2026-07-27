@@ -144,6 +144,8 @@ deriving; update in the same change that invalidates a record.
 - `docs/DECISIONS.md` - the decision log. Dated, append-only. Any choice that
   would otherwise be re-litigated (stack, data source, architecture, naming)
   gets an entry with the reason and the alternatives rejected.
+- `docs/AI-ANTIPATTERNS.md` - the catalog of tells that expose AI-built work,
+  binding on every surface this repo produces. Enforced by section 6.
 
 Rules:
 
@@ -196,7 +198,11 @@ belongs:
   period, comma, colon, or a plain hyphen. En dashes are out too; use a hyphen.
   Convert any you touch.
 - **No emojis** in code, commits, or user-facing strings.
-- **No AI-tell patterns.** No unicode arrows, checks, or crosses in code
+- **No AI-tell patterns.** `docs/AI-ANTIPATTERNS.md` is the binding catalog for
+  every surface this repo produces: code, comments, docs, README, commits, PR
+  and issue text, release notes, and CLI output. Read it before writing prose
+  or shipping a user-facing string. The rules in this file win wherever they
+  are more specific. In short: no unicode arrows, checks, or crosses in code
   comments or output; no box-drawing comment headers (plain `// --- Section
 ---` is fine); none of the stock AI marketing vocabulary ("seamless",
   "effortless", "empower", "unlock", "streamline", "cutting-edge",
