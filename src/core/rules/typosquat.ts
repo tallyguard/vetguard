@@ -1,10 +1,6 @@
 import type { Confidence, Detector, Finding, PackageFacts } from "../model.js";
 import { defaultCorpus, type PopularCorpus } from "../../ecosystems/npm/popular.js";
-
-/** Weekly downloads at or above which the suspect is treated as established (not a squat). */
-export const TYPOSQUAT_POPULAR_FLOOR = 15_000;
-export const TYPOSQUAT_LOW_DOWNLOADS = 100;
-export const TYPOSQUAT_YOUNG_DAYS = 30;
+import { nameSignalBasis, rateNameSignal } from "./name-signal.js";
 
 const CONFIDENT_TRANSFORMS = new Set(["transposition", "substitution-adjacent"]);
 
@@ -13,15 +9,12 @@ function bump(confidence: Confidence): Confidence {
 }
 
 /**
- * A dependency name that is a near-miss of a popular package. The order of
- * operations is load-bearing: self-membership is checked FIRST (a popular name
- * is never a squat of another popular name, which is what keeps preact/react and
- * color/colors from false-positiving), then the name-similarity match is only
- * turned into a finding when the suspect is NOT itself established, so a busy,
- * widely-installed package that merely looks similar is not flagged. Name
- * similarity is a gate; severity comes from the risk facts, not the distance.
+ * A dependency name that is a near-miss of a popular package. Eligibility and
+ * risk rating are the shared name-signal policy (`name-signal.ts`); this
+ * detector supplies only the similarity match and the one thing specific to it,
+ * a confidence bump when the edit is a transform typists actually make.
  *
- * Scoped names (@scope/name) are skipped in this detector: scopes are
+ * Scoped names (@scope/name) are skipped by that policy: scopes are
  * ownership-gated and the risky direction (an unscoped look-alike of a scoped
  * package) belongs to the scoped-lookalike detector.
  */
@@ -30,78 +23,47 @@ export function createTyposquatDetector(corpus: PopularCorpus = defaultCorpus): 
     id: "typosquat",
     description: "Flags dependency names that closely resemble a popular package.",
     detect(pkg: PackageFacts): Finding[] {
-      if (pkg.source !== "registry") return [];
-      if (pkg.name.startsWith("@")) return [];
-      if (corpus.has(pkg.name)) return [];
-      // Offline-capable: when existence is unknown we can still flag a corpus
-      // near-miss, but only on a deliberate offline scan, never on a transient
-      // registry failure (which would turn a rate-limit into a false positive).
-      const offline =
-        pkg.existsOnRegistry === undefined && pkg.existenceUnverifiedReason === "offline";
-      if (pkg.existsOnRegistry === undefined && !offline) return [];
+      const basis = nameSignalBasis(pkg, corpus.has(pkg.name));
+      if (basis === "skip") return [];
 
       const near = corpus.findNearMiss(pkg.name);
       if (!near) return [];
 
-      if (offline) {
+      const detail = `This name differs from the popular package "${near.target}" by a single ${near.transform}. Attackers register look-alikes to catch typos and hallucinated names. Confirm you meant this package and not "${near.target}".`;
+      const baseEvidence = `resembles "${near.target}" (popularity rank ${near.rank + 1}) via ${near.transform}`;
+      const make = (
+        severity: Finding["severity"],
+        confidence: Confidence,
+        evidence: string,
+      ): Finding => ({
+        ruleId: this.id,
+        severity,
+        confidence,
+        packageName: pkg.name,
+        ...(pkg.version === undefined ? {} : { packageVersion: pkg.version }),
+        title: "Name closely resembles a popular package",
+        detail,
+        evidence,
+        ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
+      });
+
+      if (basis === "offline") {
         // No existence or adoption facts offline: the lowest honest tier, and
         // the confident-transform bump below is deliberately not applied.
         return [
-          {
-            ruleId: this.id,
-            severity: "low",
-            confidence: "low",
-            packageName: pkg.name,
-            ...(pkg.version === undefined ? {} : { packageVersion: pkg.version }),
-            title: "Name closely resembles a popular package",
-            detail: `This name differs from the popular package "${near.target}" by a single ${near.transform}. Attackers register look-alikes to catch typos and hallucinated names. Confirm you meant this package and not "${near.target}".`,
-            evidence: `resembles "${near.target}" (popularity rank ${near.rank + 1}) via ${near.transform}; existence and adoption unverified (offline scan)`,
-            ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
-          },
+          make("low", "low", `${baseEvidence}; existence and adoption unverified (offline scan)`),
         ];
       }
 
-      const downloads = pkg.weeklyDownloads;
-      const established = downloads !== undefined && downloads >= TYPOSQUAT_POPULAR_FLOOR;
-      // An established package missing from the corpus is corpus staleness, not a squat.
-      if (pkg.existsOnRegistry === true && established) return [];
+      const rating = rateNameSignal(pkg);
+      if (!rating) return [];
 
-      let severity: Finding["severity"];
-      let confidence: Confidence;
-      if (pkg.existsOnRegistry === false) {
-        severity = "high";
-        confidence = "high";
-      } else {
-        const young = pkg.ageDays !== undefined && pkg.ageDays <= TYPOSQUAT_YOUNG_DAYS;
-        const veryLow = downloads !== undefined && downloads < TYPOSQUAT_LOW_DOWNLOADS;
-        if (young || veryLow) {
-          severity = "high";
-          confidence = "medium";
-        } else if (downloads !== undefined) {
-          severity = "medium";
-          confidence = "medium";
-        } else {
-          severity = "low";
-          confidence = "low";
-        }
-      }
-      if (CONFIDENT_TRANSFORMS.has(near.transform) && confidence !== "high") {
-        confidence = bump(confidence);
-      }
+      const confidence =
+        CONFIDENT_TRANSFORMS.has(near.transform) && rating.confidence !== "high"
+          ? bump(rating.confidence)
+          : rating.confidence;
 
-      return [
-        {
-          ruleId: this.id,
-          severity,
-          confidence,
-          packageName: pkg.name,
-          ...(pkg.version === undefined ? {} : { packageVersion: pkg.version }),
-          title: "Name closely resembles a popular package",
-          detail: `This name differs from the popular package "${near.target}" by a single ${near.transform}. Attackers register look-alikes to catch typos and hallucinated names. Confirm you meant this package and not "${near.target}".`,
-          evidence: `resembles "${near.target}" (popularity rank ${near.rank + 1}) via ${near.transform}`,
-          ...(pkg.evidencePath === undefined ? {} : { location: pkg.evidencePath }),
-        },
-      ];
+      return [make(rating.severity, confidence, baseEvidence)];
     },
   };
 }
