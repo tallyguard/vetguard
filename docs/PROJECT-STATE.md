@@ -3,7 +3,7 @@
 The live cache. Current facts only; if a change makes a line here wrong,
 fixing it is part of that change. Dates are absolute (YYYY-MM-DD).
 
-Last verified: 2026-07-22
+Last verified: 2026-10-25
 
 ## What this is
 
@@ -125,6 +125,14 @@ core, npm adapter first. Full plan: PLAN.md. Decisions: DECISIONS.md.
   schedules dispatched green; F10 polish. F3 (Action ran `latest`) and F4 (README
   detector count) fixed in the v0.3.0 release prep: package.json and the
   action.yml `version` default are 0.3.0, README pins repinned to `@v0.3.0`.
+- 2026-10-25: **Full audit (A-D scale, only A passes) graded the repo C.**
+  Findings H1-H2, M1-M6, L1-L7 in AUDIT-2026-10-25.md, with live repros for
+  every critical/high claim and a blind independent second pass (same grade).
+  Verified solid: no execution of scanned content, injection-safe JSON/SARIF,
+  honest OSV degradation, least-privilege workflows, green gate (225 tests,
+  accuracy eval 0 FP / 7 positives). Remediation started same day: Kilo agent
+  config (AGENTS.md, /audit /review commands) landed (#46); fix order H1
+  (hostile-name DoS), M3 (git deps honesty), M6 (lockfile honesty).
 - 2026-07-22: **v0.3.0 published.** The maintainer cut the GitHub Release
   `v0.3.0`; `release.yml` published to npm via OIDC with SLSA provenance.
   `vetguard@0.3.0` is the `latest` dist-tag. First release to carry the

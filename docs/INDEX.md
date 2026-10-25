@@ -11,3 +11,4 @@ One line per doc. Add a line here in the same commit that creates a doc.
 - [ROADMAP.md](ROADMAP.md) - execution plan from v0.1.0 to v1.0: milestones, per-item definitions of done, sequencing. Read after PROJECT-STATE when starting work.
 - [AUDIT-M1-REMEDIATION.md](AUDIT-M1-REMEDIATION.md) - tracking doc for the 2026-07-21 Milestone 1 audit findings: status, per-finding plans, and closure.
 - [AUDIT-M2-REMEDIATION.md](AUDIT-M2-REMEDIATION.md) - tracking doc for the 2026-07-22 Milestone 2 audit findings (F1-F10): status, per-finding resolution steps, and closure.
+- [AUDIT-2026-10-25.md](AUDIT-2026-10-25.md) - full repo audit graded A-D (repo graded C): findings H1-H2, M1-M6, lows, verified-solid list, remediation order.
